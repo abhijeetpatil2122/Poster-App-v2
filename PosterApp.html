@@ -1,0 +1,2295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="var(--tg-theme-bg-color)">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="description" content="Paradox Poster - Movie & TV Image Gallery">
+    <title>Paradox Poster</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-text-color: #000000;
+            --tg-theme-hint-color: #999999;
+            --tg-theme-link-color: #2481cc;
+            --tg-theme-button-color: #2481cc;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-secondary-bg-color: #f4f4f5;
+            --border-color: rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            user-select: none;
+        }
+
+        .app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 100%;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .header {
+            background: var(--tg-theme-bg-color);
+            padding: max(env(safe-area-inset-top), 8px) 16px 12px;
+            position: relative;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--tg-theme-button-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--tg-theme-text-color);
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+
+        .profile-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--tg-theme-secondary-bg-color);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .profile-btn:active {
+            transform: scale(0.95);
+        }
+
+        .profile-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-btn .profile-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--tg-theme-button-color);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .profile-tooltip {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: var(--tg-theme-bg-color);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+            width: 280px;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-10px);
+            visibility: hidden;
+            transition: all 0.2s ease;
+            overflow: hidden;
+        }
+
+        .profile-tooltip.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .profile-info {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .profile-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--tg-theme-text-color);
+        }
+
+        .profile-userid {
+            font-size: 13px;
+            color: var(--tg-theme-hint-color);
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .profile-menu {
+            padding: 8px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--tg-theme-text-color);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .menu-item:hover,
+        .menu-item:active {
+            background: var(--tg-theme-secondary-bg-color);
+        }
+
+        .menu-item svg {
+            opacity: 0.7;
+        }
+
+        .menu-item span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .search-container {
+            padding: 12px 16px;
+            background: var(--tg-theme-bg-color);
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .search-container.hidden {
+            display: none;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 90px 10px 14px;
+            background: var(--tg-theme-secondary-bg-color);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 400;
+            color: var(--tg-theme-text-color);
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--tg-theme-button-color);
+            box-shadow: 0 0 0 3px rgba(36, 129, 204, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: var(--tg-theme-hint-color);
+        }
+
+        .search-actions {
+            position: absolute;
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 4px;
+        }
+
+        .search-clear,
+        .search-btn {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            color: var(--tg-theme-button-color);
+            transition: all 0.2s ease;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-clear {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .search-clear.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .search-btn {
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            padding: 8px 12px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .search-btn:active {
+            transform: scale(0.95);
+        }
+
+        .main {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 0 0 env(safe-area-inset-bottom) 0;
+        }
+
+        .main::-webkit-scrollbar {
+            width: 0;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .results-container {
+            padding: 12px 16px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            min-height: 50vh;
+        }
+
+        @media (min-width: 768px) {
+            .results-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .result-card {
+            background: var(--tg-theme-bg-color);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            animation: slideUp 0.3s ease-out backwards;
+            will-change: transform, opacity;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-card:active {
+            transform: scale(0.98);
+        }
+
+        .result-poster {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 2/3;
+            background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        body.dark .result-poster {
+            background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+        }
+
+        .result-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 8px;
+            will-change: opacity;
+        }
+
+        .result-poster img.loaded {
+            opacity: 1;
+        }
+
+        .result-info {
+            padding: 10px;
+        }
+
+        .result-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.3;
+        }
+
+        .result-meta {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .type-badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .type-movie {
+            background: rgba(36, 129, 204, 0.15);
+            color: var(--tg-theme-button-color);
+        }
+
+        .type-tv {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        .gallery-header {
+            background: var(--tg-theme-bg-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .gallery-tabs {
+            display: flex;
+            background: var(--tg-theme-bg-color);
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            gap: 8px;
+            padding: 10px 16px;
+            will-change: scroll-position;
+        }
+
+        .gallery-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            flex-shrink: 0;
+            padding: 8px 14px;
+            background: var(--tg-theme-secondary-bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--tg-theme-text-color);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            will-change: transform;
+        }
+
+        .tab-btn.active {
+            background: var(--tg-theme-button-color);
+            border-color: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+        }
+
+        .tab-btn:active {
+            transform: scale(0.95);
+        }
+
+        .tab-badge {
+            background: rgba(255, 255, 255, 0.25);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .tab-btn:not(.active) .tab-badge {
+            background: var(--tg-theme-button-color);
+            color: white;
+        }
+
+        .language-filter {
+            padding: 10px 16px;
+            background: var(--tg-theme-secondary-bg-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            will-change: scroll-position;
+        }
+
+        .language-filter::-webkit-scrollbar {
+            display: none;
+        }
+
+        .language-filter.hidden {
+            display: none;
+        }
+
+        .lang-btn {
+            padding: 6px 14px;
+            background: var(--tg-theme-bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            color: var(--tg-theme-text-color);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            will-change: transform;
+        }
+
+        .lang-btn.active {
+            background: var(--tg-theme-button-color);
+            border-color: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+        }
+
+        .lang-btn:active {
+            transform: scale(0.95);
+        }
+
+        .images-container {
+            padding: 12px 16px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            min-height: 50vh;
+            will-change: contents;
+        }
+
+        .image-card {
+            background: var(--tg-theme-bg-color);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            animation: fadeIn 0.3s ease-out backwards;
+            will-change: transform, opacity;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .image-card:active {
+            transform: scale(0.98);
+        }
+
+        .image-card.backdrop {
+            grid-column: span 2;
+        }
+
+        .image-wrapper {
+            position: relative;
+            width: 100%;
+            background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
+            overflow: hidden;
+            will-change: contents;
+        }
+
+        body.dark .image-wrapper {
+            background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+        }
+
+        .image-card.backdrop .image-wrapper {
+            aspect-ratio: 16/9;
+        }
+
+        .image-card.poster .image-wrapper {
+            aspect-ratio: 2/3;
+        }
+
+        .image-card.logo .image-wrapper {
+            aspect-ratio: 16/9;
+            background: var(--tg-theme-secondary-bg-color);
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            will-change: opacity;
+        }
+
+        .image-wrapper img.loaded {
+            opacity: 1;
+        }
+
+        .image-card.logo img {
+            object-fit: contain;
+            padding: 10px;
+        }
+
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .lightbox-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .lightbox-img-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .lightbox-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            user-select: none;
+            transition: transform 0.3s ease;
+            transform-origin: center center;
+            will-change: transform;
+        }
+
+        .lightbox-controls {
+            position: fixed;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 0 20px;
+            z-index: 1001;
+        }
+
+        .lightbox-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .lightbox-btn:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .close-lightbox {
+            position: fixed;
+            top: calc(max(env(safe-area-inset-top), 10px) + 10px);
+            right: 10px;
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+
+        .nav-btn {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 1001;
+        }
+
+        .nav-btn.prev {
+            left: 10px;
+        }
+
+        .nav-btn.next {
+            right: 10px;
+        }
+
+        .nav-btn:active {
+            transform: translateY(-50%) scale(0.9);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, var(--tg-theme-secondary-bg-color) 25%, var(--border-color) 50%, var(--tg-theme-secondary-bg-color) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--tg-theme-button-color);
+            padding: 10px 20px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 10000;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 40px;
+            max-width: 90%;
+            backdrop-filter: blur(10px);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #10b981 0%, #0da271 100%);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .toast.info {
+            background: linear-gradient(135deg, var(--tg-theme-button-color) 0%, #1d6fb8 100%);
+        }
+
+        .toast.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .toast-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            opacity: 0.3;
+            color: var(--tg-theme-hint-color);
+        }
+
+        .empty-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .empty-text {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color);
+        }
+
+        .load-more {
+            padding: 16px;
+            text-align: center;
+        }
+
+        .load-more-spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--tg-theme-button-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .scroll-top-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 16px;
+            width: 48px;
+            height: 48px;
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 999;
+            box-shadow: 0 4px 16px rgba(36, 129, 204, 0.3);
+        }
+
+        .scroll-top-btn.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .scroll-top-btn:active {
+            transform: scale(0.95);
+        }
+
+        .scroll-top-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--tg-theme-bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--tg-theme-button-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toast" id="toast">
+        <div class="toast-text" id="toastText"></div>
+    </div>
+
+    <div class="lightbox" id="lightbox">
+        <button class="close-lightbox" id="closeLightbox">&times;</button>
+        <button class="nav-btn prev" id="prevBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </button>
+        <div class="lightbox-content">
+            <div class="lightbox-img-container" id="lightboxImgContainer">
+                <img class="lightbox-img" id="lightboxImg" src="" alt="">
+            </div>
+        </div>
+        <button class="nav-btn next" id="nextBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+            </svg>
+        </button>
+        <div class="lightbox-controls">
+            <button class="lightbox-btn" id="copyBtn" title="Copy Link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+            </button>
+            <button class="lightbox-btn" id="downloadBtn" title="Download">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="app">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                        </svg>
+                    </div>
+                    <div class="logo-text">Paradox Poster</div>
+                </div>
+                <div class="profile-section">
+                    <div class="profile-btn" id="profileBtn">
+                        <div class="profile-placeholder" id="profilePlaceholder">U</div>
+                    </div>
+                    <div class="profile-tooltip" id="profileTooltip">
+                        <div class="profile-info">
+                            <div class="profile-name" id="profileName">User Name</div>
+                            <div class="profile-userid" id="profileUserId">ID: 0</div>
+                        </div>
+                        <div class="profile-menu">
+                            <a href="https://t.me/paradox0x0" target="_blank" class="menu-item" id="developerLink">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                                </svg>
+                                <span>Contact Developer</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="search-container" id="searchContainer">
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput"
+                    placeholder="Search movies/TV shows..."
+                    autocomplete="off"
+                />
+                <div class="search-actions">
+                    <button class="search-clear" id="searchClear">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                    <button class="search-btn" id="searchBtn">Search</button>
+                </div>
+            </div>
+        </div>
+
+        <main class="main" id="mainContent">
+            <section class="content-section active" id="searchSection">
+                <div class="results-container" id="resultsContainer"></div>
+                <div class="load-more" id="loadMore" style="display:none;">
+                    <div class="load-more-spinner"></div>
+                </div>
+            </section>
+
+            <section class="content-section" id="gallerySection">
+                <div class="loading-overlay hidden" id="galleryLoading">
+                    <div class="loading-spinner"></div>
+                </div>
+                <div class="gallery-header">
+                    <div class="gallery-tabs" id="galleryTabs"></div>
+                    <div class="language-filter" id="languageFilter"></div>
+                </div>
+                <div class="images-container" id="imagesContainer">
+                    <div style="grid-column: 1/-1; padding: 40px; text-align: center; color: var(--tg-theme-hint-color);">
+                        Loading gallery...
+                    </div>
+                </div>
+                <div class="load-more" id="loadMoreGallery" style="display:none;">
+                    <div class="load-more-spinner"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <button class="scroll-top-btn" id="scrollTopBtn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="18 15 12 9 6 15"/>
+        </svg>
+    </button>
+
+    <script>
+        (function() {
+            'use strict';
+
+            const TMDB_API_KEY = 'f979d700e9d424a22b2d0d8dbbd932e0';
+            const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
+            const TMDB_IMAGE_ORIGINAL = 'https://image.tmdb.org/t/p/original';
+
+            const state = {
+                currentView: 'search',
+                searchResults: [],
+                discoverResults: [],
+                currentMedia: null,
+                galleryData: {
+                    backdrops: { en: [], hi: [], mr: [], null: [] },
+                    posters: { en: [], hi: [], mr: [] },
+                    logos: []
+                },
+                activeTab: 'backdrops',
+                activeLanguage: 'all',
+                currentImages: [],
+                currentImageIndex: 0,
+                isLoading: false,
+                hasMore: true,
+                currentPage: 1,
+                isSearchMode: false,
+                galleryLoadedCount: 0,
+                galleryBatchSize: 20,
+                allImages: [],
+                settings: {
+                    haptic: localStorage.getItem('haptic') !== 'false'
+                },
+                zoom: {
+                    scale: 1,
+                    posX: 0,
+                    posY: 0,
+                    isDragging: false,
+                    lastPosX: 0,
+                    lastPosY: 0,
+                    startX: 0,
+                    startY: 0
+                },
+                backButtonHandler: null,
+                isScrolledDown: false,
+                touchStartX: 0,
+                touchStartY: 0,
+                isSwiping: false,
+                currentScrollTop: 0,
+                profileOpen: false,
+                userData: null,
+                loadingQueue: [],
+                isQueueProcessing: false
+            };
+
+            const tg = window.Telegram?.WebApp;
+            if (tg) {
+                tg.ready();
+                tg.expand();
+                tg.disableVerticalSwipes();
+
+                if (tg.themeParams) {
+                    document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
+                    document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
+                    document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#999999');
+                    document.documentElement.style.setProperty('--tg-theme-link-color', tg.themeParams.link_color || '#2481cc');
+                    document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#2481cc');
+                    document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
+                    document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#f4f4f5');
+
+                    if (tg.colorScheme === 'dark') {
+                        document.body.classList.add('dark');
+                    }
+                }
+
+                // Get user data from Telegram
+                if (tg.initDataUnsafe?.user) {
+                    const user = tg.initDataUnsafe.user;
+                    state.userData = {
+                        firstName: user.first_name || '',
+                        lastName: user.last_name || '',
+                        userId: user.id || 0,
+                        username: user.username || '',
+                        photoUrl: user.photo_url || ''
+                    };
+                }
+            }
+
+            const elements = {
+                searchInput: document.getElementById('searchInput'),
+                searchBtn: document.getElementById('searchBtn'),
+                searchClear: document.getElementById('searchClear'),
+                searchContainer: document.getElementById('searchContainer'),
+                searchSection: document.getElementById('searchSection'),
+                gallerySection: document.getElementById('gallerySection'),
+                resultsContainer: document.getElementById('resultsContainer'),
+                galleryTabs: document.getElementById('galleryTabs'),
+                languageFilter: document.getElementById('languageFilter'),
+                imagesContainer: document.getElementById('imagesContainer'),
+                loadMore: document.getElementById('loadMore'),
+                loadMoreGallery: document.getElementById('loadMoreGallery'),
+                toast: document.getElementById('toast'),
+                toastText: document.getElementById('toastText'),
+                lightbox: document.getElementById('lightbox'),
+                lightboxImg: document.getElementById('lightboxImg'),
+                lightboxImgContainer: document.getElementById('lightboxImgContainer'),
+                closeLightbox: document.getElementById('closeLightbox'),
+                prevBtn: document.getElementById('prevBtn'),
+                nextBtn: document.getElementById('nextBtn'),
+                copyBtn: document.getElementById('copyBtn'),
+                downloadBtn: document.getElementById('downloadBtn'),
+                mainContent: document.getElementById('mainContent'),
+                scrollTopBtn: document.getElementById('scrollTopBtn'),
+                galleryLoading: document.getElementById('galleryLoading'),
+                profileBtn: document.getElementById('profileBtn'),
+                profileTooltip: document.getElementById('profileTooltip'),
+                profilePlaceholder: document.getElementById('profilePlaceholder'),
+                profileName: document.getElementById('profileName'),
+                profileUserId: document.getElementById('profileUserId'),
+                developerLink: document.getElementById('developerLink')
+            };
+
+            function haptic(type = 'heavy') {
+                if (!state.settings.haptic) return;
+
+                try {
+                    if (tg?.HapticFeedback) {
+                        if (type === 'selection') {
+                            tg.HapticFeedback.selectionChanged();
+                        } else if (type === 'success' || type === 'error' || type === 'warning') {
+                            tg.HapticFeedback.notificationOccurred(type);
+                        } else {
+                            tg.HapticFeedback.impactOccurred(type);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Haptic error:', e);
+                }
+            }
+
+            function showToast(message, type = 'info') {
+                elements.toastText.textContent = message;
+                elements.toast.className = `toast ${type}`;
+                elements.toast.classList.add('show');
+                haptic(type === 'success' ? 'success' : type === 'error' ? 'error' : 'selection');
+
+                setTimeout(() => {
+                    elements.toast.classList.remove('show');
+                }, 3000);
+            }
+
+            function setupBackButton(handler) {
+                if (!tg?.BackButton) return;
+
+                if (state.backButtonHandler) {
+                    tg.BackButton.offClick(state.backButtonHandler);
+                }
+
+                state.backButtonHandler = handler;
+                tg.BackButton.onClick(handler);
+                tg.BackButton.show();
+            }
+
+            function hideBackButton() {
+                if (!tg?.BackButton) return;
+
+                if (state.backButtonHandler) {
+                    tg.BackButton.offClick(state.backButtonHandler);
+                    state.backButtonHandler = null;
+                }
+
+                tg.BackButton.hide();
+            }
+
+            function scrollToTop(smooth = true) {
+                if (smooth) {
+                    elements.mainContent.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    elements.mainContent.scrollTop = 0;
+                }
+            }
+
+            function updateScrollTopButton() {
+                const isScrolled = elements.mainContent.scrollTop > 300;
+
+                if (isScrolled !== state.isScrolledDown) {
+                    state.isScrolledDown = isScrolled;
+                    if (isScrolled) {
+                        elements.scrollTopBtn.classList.add('show');
+                    } else {
+                        elements.scrollTopBtn.classList.remove('show');
+                    }
+                }
+            }
+
+            function setupUserProfile() {
+                if (!state.userData) return;
+
+                // Set user name
+                const fullName = `${state.userData.firstName}${state.userData.lastName ? ' ' + state.userData.lastName : ''}`;
+                elements.profileName.textContent = fullName || 'Telegram User';
+                elements.profileUserId.textContent = `ID: ${state.userData.userId}`;
+
+                // Set profile placeholder with first letter
+                if (fullName) {
+                    elements.profilePlaceholder.textContent = fullName.charAt(0).toUpperCase();
+                }
+
+                // Load profile photo if available
+                if (state.userData.photoUrl) {
+                    const img = new Image();
+                    img.onload = function() {
+                        elements.profileBtn.innerHTML = '';
+                        const profileImg = document.createElement('img');
+                        profileImg.src = state.userData.photoUrl;
+                        profileImg.alt = fullName;
+                        elements.profileBtn.appendChild(profileImg);
+                    };
+                    img.onerror = function() {
+                        // Keep placeholder if image fails to load
+                    };
+                    img.src = state.userData.photoUrl;
+                }
+
+                // Toggle profile tooltip
+                elements.profileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    haptic('light');
+                    state.profileOpen = !state.profileOpen;
+                    if (state.profileOpen) {
+                        elements.profileTooltip.classList.add('show');
+                    } else {
+                        elements.profileTooltip.classList.remove('show');
+                    }
+                });
+
+                // Close tooltip when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (state.profileOpen && 
+                        !elements.profileBtn.contains(e.target) && 
+                        !elements.profileTooltip.contains(e.target)) {
+                        state.profileOpen = false;
+                        elements.profileTooltip.classList.remove('show');
+                    }
+                });
+
+                // Handle developer link
+                elements.developerLink.addEventListener('click', (e) => {
+                    haptic('medium');
+                    showToast('Opening Telegram...', 'info');
+                    state.profileOpen = false;
+                    elements.profileTooltip.classList.remove('show');
+                });
+            }
+
+            let searchTimeout;
+            async function handleLiveSearch(query) {
+                clearTimeout(searchTimeout);
+
+                if (!query.trim()) {
+                    elements.searchClear.classList.remove('show');
+                    state.isSearchMode = false;
+                    state.currentPage = 1;
+                    renderSearchResults();
+                    return;
+                }
+
+                elements.searchClear.classList.add('show');
+
+                searchTimeout = setTimeout(() => {
+                    searchTMDB(query);
+                }, 500);
+            }
+
+            async function loadDiscoverMovies(page = 1) {
+                try {
+                    const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&include_adult=false&language=en-US&page=${page}&sort_by=popularity.desc`;
+
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    if (data.results && data.results.length > 0) {
+                        const results = data.results.filter(r => r.poster_path);
+
+                        if (page === 1) {
+                            state.discoverResults = results;
+                        } else {
+                            state.discoverResults = [...state.discoverResults, ...results];
+                        }
+
+                        state.hasMore = data.page < data.total_pages;
+                        return results;
+                    }
+
+                    return [];
+                } catch (error) {
+                    console.error('Discover error:', error);
+                    return [];
+                }
+            }
+
+            async function searchTMDB(query) {
+                if (!query.trim()) {
+                    showToast('Please enter a search query', 'error');
+                    return;
+                }
+
+                state.isLoading = true;
+                state.isSearchMode = true;
+                state.currentPage = 1;
+                showLoadingSkeletons();
+
+                try {
+                    const yearMatch = query.match(/\(?(\d{4})\)?$/);
+                    const year = yearMatch ? yearMatch[1] : null;
+                    const title = year ? query.replace(/\s*\(?\d{4}\)?$/, '').trim() : query;
+
+                    const url = `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}${year ? '&year=' + year : ''}&page=1`;
+
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    if (!data.results || data.results.length === 0) {
+                        showEmptyState('No results found', 'Try a different search');
+                        return;
+                    }
+
+                    const results = data.results.filter(r => 
+                        (r.media_type === 'movie' || r.media_type === 'tv') && r.poster_path
+                    );
+
+                    if (results.length === 0) {
+                        showEmptyState('No movies or TV shows found');
+                        return;
+                    }
+
+                    const queryLC = title.toLowerCase();
+                    results.sort((a, b) => {
+                        const aTitle = (a.title || a.name || '').toLowerCase();
+                        const bTitle = (b.title || b.name || '').toLowerCase();
+
+                        if (aTitle === queryLC && bTitle !== queryLC) return -1;
+                        if (bTitle === queryLC && aTitle !== queryLC) return 1;
+
+                        return (b.popularity || 0) - (a.popularity || 0);
+                    });
+
+                    state.searchResults = results;
+                    state.hasMore = data.page < data.total_pages;
+                    renderSearchResults();
+
+                } catch (error) {
+                    console.error('Search error:', error);
+                    showToast('Failed to search', 'error');
+                    showEmptyState('Search failed', 'Please try again');
+                } finally {
+                    state.isLoading = false;
+                }
+            }
+
+            async function fetchImages(type, id) {
+                state.isLoading = true;
+                state.galleryLoadedCount = 0;
+                state.allImages = [];
+
+                // Reset gallery state
+                state.activeTab = 'backdrops';
+                state.activeLanguage = 'all';
+
+                // Clear container and show loading
+                elements.imagesContainer.innerHTML = '';
+                elements.galleryLoading.classList.remove('hidden');
+
+                // Reset scroll position
+                elements.mainContent.scrollTop = 0;
+                elements.scrollTopBtn.classList.remove('show');
+
+                try {
+                    const url = `https://api.themoviedb.org/3/${type}/${id}/images?api_key=${TMDB_API_KEY}`;
+
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    state.galleryData = {
+                        backdrops: {
+                            en: (data.backdrops || []).filter(x => x.iso_639_1 === 'en'),
+                            hi: (data.backdrops || []).filter(x => x.iso_639_1 === 'hi'),
+                            mr: (data.backdrops || []).filter(x => x.iso_639_1 === 'mr'),
+                            null: (data.backdrops || []).filter(x => !x.iso_639_1)
+                        },
+                        posters: {
+                            en: (data.posters || []).filter(x => x.iso_639_1 === 'en'),
+                            hi: (data.posters || []).filter(x => x.iso_639_1 === 'hi'),
+                            mr: (data.posters || []).filter(x => x.iso_639_1 === 'mr')
+                        },
+                        logos: (data.logos || []).filter(x => x.file_path?.endsWith('.png'))
+                    };
+
+                    const media = [...state.searchResults, ...state.discoverResults].find(r => 
+                        (r.media_type === type || !r.media_type) && r.id.toString() === id.toString()
+                    ) || {};
+
+                    state.currentMedia = {
+                        type,
+                        id,
+                        title: media.title || media.name || 'Unknown',
+                        year: (media.release_date || media.first_air_date || '').split('-')[0]
+                    };
+
+                    // Hide loading and setup gallery
+                    setTimeout(() => {
+                        elements.galleryLoading.classList.add('hidden');
+                        setupGalleryTabs();
+                        renderImages();
+                    }, 200);
+
+                } catch (error) {
+                    console.error('Fetch images error:', error);
+                    elements.galleryLoading.classList.add('hidden');
+                    showToast('Failed to load images', 'error');
+                    elements.imagesContainer.innerHTML = '<div style="grid-column: 1/-1;"><div class="empty-state"><div class="empty-title">Failed to load images</div><div class="empty-text">Please try again</div></div></div>';
+                } finally {
+                    state.isLoading = false;
+                }
+            }
+
+            function showLoadingSkeletons(count = 6) {
+                elements.resultsContainer.innerHTML = '';
+                for (let i = 0; i < count; i++) {
+                    const skeleton = document.createElement('div');
+                    skeleton.className = 'result-card';
+                    skeleton.innerHTML = `
+                        <div class="result-poster skeleton"></div>
+                        <div class="result-info">
+                            <div class="skeleton" style="height: 16px; margin-bottom: 6px;"></div>
+                            <div class="skeleton" style="height: 14px; width: 60%;"></div>
+                        </div>
+                    `;
+                    elements.resultsContainer.appendChild(skeleton);
+                }
+            }
+
+            function showEmptyState(title, text = '') {
+                elements.resultsContainer.innerHTML = `
+                    <div style="grid-column: 1/-1;">
+                        <div class="empty-state">
+                            <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="m15 9-6 6"/>
+                                <path d="m9 9 6 6"/>
+                            </svg>
+                            <div class="empty-title">${title}</div>
+                            ${text ? `<div class="empty-text">${text}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderSearchResults() {
+                const results = state.isSearchMode ? state.searchResults : state.discoverResults;
+
+                if (results.length === 0) {
+                    showEmptyState('No results');
+                    return;
+                }
+
+                // Clear only if not loading more
+                if (state.currentPage === 1) {
+                    elements.resultsContainer.innerHTML = '';
+                }
+
+                results.forEach((result, index) => {
+                    // Skip if already rendered (for infinite scroll)
+                    if (state.currentPage > 1 && index < (state.currentPage - 1) * 20) {
+                        return;
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'result-card';
+                    card.dataset.type = result.media_type || 'movie';
+                    card.dataset.id = result.id;
+
+                    const posterUrl = result.poster_path 
+                        ? `${TMDB_IMAGE_BASE}${result.poster_path}`
+                        : '';
+
+                    const title = result.title || result.name || 'Unknown';
+                    const year = (result.release_date || result.first_air_date || '').split('-')[0];
+                    const type = (result.media_type === 'tv' || result.media_type === 'series') ? 'TV' : 'Movie';
+
+                    card.innerHTML = `
+                        <div class="result-poster">
+                            ${posterUrl ? `
+                                <img 
+                                    src="${posterUrl}" 
+                                    alt="${title}"
+                                    loading="lazy"
+                                    onload="this.classList.add('loaded')"
+                                    onerror="this.style.display='none'"
+                                >
+                            ` : ''}
+                        </div>
+                        <div class="result-info">
+                            <div class="result-title">${title}</div>
+                            <div class="result-meta">
+                                <span class="type-badge ${type === 'Movie' ? 'type-movie' : 'type-tv'}">
+                                    ${type}
+                                </span>
+                                <span>${year || 'N/A'}</span>
+                            </div>
+                        </div>
+                    `;
+
+                    card.addEventListener('click', () => {
+                        haptic('medium');
+                        openGallery(card.dataset.type, card.dataset.id);
+                    });
+
+                    elements.resultsContainer.appendChild(card);
+                });
+            }
+
+            function openGallery(type, id) {
+                haptic('medium');
+                state.currentView = 'gallery';
+                state.activeTab = 'backdrops';
+                state.activeLanguage = 'all';
+
+                // Close profile if open
+                if (state.profileOpen) {
+                    state.profileOpen = false;
+                    elements.profileTooltip.classList.remove('show');
+                }
+
+                // Animate section transition
+                elements.searchSection.classList.remove('active');
+                elements.searchContainer.classList.add('hidden');
+
+                setTimeout(() => {
+                    elements.gallerySection.classList.add('active');
+                }, 50);
+
+                elements.scrollTopBtn.classList.remove('show');
+                elements.mainContent.scrollTop = 0;
+
+                setupBackButton(() => {
+                    haptic('light');
+                    navigateBack();
+                });
+
+                fetchImages(type, id);
+            }
+
+            function navigateBack() {
+                if (state.currentView === 'gallery') {
+                    state.currentView = 'search';
+
+                    // Close profile if open
+                    if (state.profileOpen) {
+                        state.profileOpen = false;
+                        elements.profileTooltip.classList.remove('show');
+                    }
+
+                    // Animate section transition
+                    elements.gallerySection.classList.remove('active');
+
+                    setTimeout(() => {
+                        elements.searchSection.classList.add('active');
+                        elements.searchContainer.classList.remove('hidden');
+                    }, 50);
+
+                    elements.scrollTopBtn.classList.remove('show');
+                    hideBackButton();
+                    elements.mainContent.scrollTop = 0;
+                }
+            }
+
+            function setupGalleryTabs() {
+                const getCategoryCount = (category) => {
+                    if (category === 'backdrops') {
+                        return Object.values(state.galleryData.backdrops).reduce((sum, arr) => sum + arr.length, 0);
+                    } else if (category === 'posters') {
+                        return Object.values(state.galleryData.posters).reduce((sum, arr) => sum + arr.length, 0);
+                    } else if (category === 'logos') {
+                        return state.galleryData.logos.length;
+                    }
+                    return 0;
+                };
+
+                const tabs = [
+                    { id: 'backdrops', label: '🏞️ Landscape', count: getCategoryCount('backdrops') },
+                    { id: 'posters', label: '🎬 Posters', count: getCategoryCount('posters') },
+                    { id: 'logos', label: '🎯 Logos', count: getCategoryCount('logos') }
+                ];
+
+                elements.galleryTabs.innerHTML = '';
+                tabs.forEach(tab => {
+                    const button = document.createElement('button');
+                    button.className = `tab-btn ${state.activeTab === tab.id ? 'active' : ''}`;
+                    button.innerHTML = `
+                        <span>${tab.label}</span>
+                        <span class="tab-badge">${tab.count}</span>
+                    `;
+                    button.dataset.tab = tab.id;
+
+                    button.addEventListener('click', () => {
+                        haptic('selection');
+
+                        // Store current scroll position
+                        state.currentScrollTop = elements.mainContent.scrollTop;
+
+                        // Only scroll if we're scrolled down
+                        if (state.currentScrollTop > 100) {
+                            scrollToTop(true);
+                            setTimeout(() => {
+                                switchTab(tab.id);
+                            }, 300);
+                        } else {
+                            switchTab(tab.id);
+                        }
+                    });
+
+                    elements.galleryTabs.appendChild(button);
+                });
+
+                // Reset language filter scroll
+                elements.languageFilter.scrollLeft = 0;
+                updateLanguageFilter();
+            }
+
+            function switchTab(tabId) {
+                state.activeTab = tabId;
+                state.activeLanguage = 'all';
+                state.galleryLoadedCount = 0;
+                state.allImages = [];
+                updateActiveTab();
+                updateLanguageFilter();
+                renderImages();
+            }
+
+            function updateActiveTab() {
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.tab === state.activeTab);
+                });
+            }
+
+            function updateLanguageFilter() {
+                let languages = [];
+
+                if (state.activeTab === 'backdrops') {
+                    const counts = {
+                        all: Object.values(state.galleryData.backdrops).reduce((s, a) => s + a.length, 0),
+                        en: state.galleryData.backdrops.en.length,
+                        hi: state.galleryData.backdrops.hi.length,
+                        mr: state.galleryData.backdrops.mr.length,
+                        null: state.galleryData.backdrops.null.length
+                    };
+
+                    languages = [
+                        { id: 'all', label: `🌐 All (${counts.all})` },
+                        { id: 'en', label: `🇺🇸 English (${counts.en})` },
+                        { id: 'hi', label: `🇮🇳 Hindi (${counts.hi})` },
+                        { id: 'mr', label: `🇮🇳 Marathi (${counts.mr})` },
+                        { id: 'null', label: `🌐 Clean (${counts.null})` }
+                    ];
+                } else if (state.activeTab === 'posters') {
+                    const counts = {
+                        all: Object.values(state.galleryData.posters).reduce((s, a) => s + a.length, 0),
+                        en: state.galleryData.posters.en.length,
+                        hi: state.galleryData.posters.hi.length,
+                        mr: state.galleryData.posters.mr.length
+                    };
+
+                    languages = [
+                        { id: 'all', label: `🌐 All (${counts.all})` },
+                        { id: 'en', label: `🇺🇸 English (${counts.en})` },
+                        { id: 'hi', label: `🇮🇳 Hindi (${counts.hi})` },
+                        { id: 'mr', label: `🇮🇳 Marathi (${counts.mr})` }
+                    ];
+                }
+
+                if (languages.length > 0) {
+                    elements.languageFilter.classList.remove('hidden');
+                    elements.languageFilter.innerHTML = '';
+
+                    languages.forEach(lang => {
+                        const button = document.createElement('button');
+                        button.className = `lang-btn ${state.activeLanguage === lang.id ? 'active' : ''}`;
+                        button.textContent = lang.label;
+                        button.dataset.lang = lang.id;
+
+                        button.addEventListener('click', () => {
+                            haptic('selection');
+
+                            // Store current scroll position
+                            state.currentScrollTop = elements.mainContent.scrollTop;
+
+                            // Only scroll if we're scrolled down
+                            if (state.currentScrollTop > 100) {
+                                scrollToTop(true);
+                                setTimeout(() => {
+                                    switchLanguage(lang.id);
+                                }, 300);
+                            } else {
+                                switchLanguage(lang.id);
+                            }
+                        });
+
+                        elements.languageFilter.appendChild(button);
+                    });
+                } else {
+                    elements.languageFilter.classList.add('hidden');
+                }
+            }
+
+            function switchLanguage(langId) {
+                state.activeLanguage = langId;
+                state.galleryLoadedCount = 0;
+                state.allImages = [];
+                updateActiveLanguage();
+                renderImages();
+            }
+
+            function updateActiveLanguage() {
+                document.querySelectorAll('.lang-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.lang === state.activeLanguage);
+                });
+            }
+
+            function renderImages(loadMore = false) {
+                if (!loadMore) {
+                    elements.imagesContainer.innerHTML = '';
+                    state.currentImages = [];
+                    state.allImages = [];
+                }
+
+                let images = [];
+                let imageType = '';
+
+                if (state.activeTab === 'backdrops') {
+                    imageType = 'backdrop';
+                    if (state.activeLanguage === 'all') {
+                        Object.values(state.galleryData.backdrops).forEach(arr => images.push(...arr));
+                    } else {
+                        images = state.galleryData.backdrops[state.activeLanguage] || [];
+                    }
+                } else if (state.activeTab === 'posters') {
+                    imageType = 'poster';
+                    if (state.activeLanguage === 'all') {
+                        Object.values(state.galleryData.posters).forEach(arr => images.push(...arr));
+                    } else {
+                        images = state.galleryData.posters[state.activeLanguage] || [];
+                    }
+                } else if (state.activeTab === 'logos') {
+                    imageType = 'logo';
+                    images = state.galleryData.logos;
+                }
+
+                if (images.length === 0) {
+                    elements.imagesContainer.innerHTML = `
+                        <div style="grid-column: 1/-1;">
+                            <div class="empty-state">
+                                <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21 15 16 10 5 21"/>
+                                </svg>
+                                <div class="empty-title">No images found</div>
+                                <div class="empty-text">Try another category or language</div>
+                            </div>
+                        </div>
+                    `;
+                    elements.loadMoreGallery.style.display = 'none';
+                    return;
+                }
+
+                // Store all images for the current view
+                if (!loadMore) {
+                    state.allImages = images;
+                }
+
+                const startIndex = loadMore ? state.galleryLoadedCount : 0;
+                const endIndex = Math.min(startIndex + state.galleryBatchSize, images.length);
+                const imagesToRender = images.slice(startIndex, endIndex);
+
+                if (imagesToRender.length === 0) {
+                    elements.loadMoreGallery.style.display = 'none';
+                    return;
+                }
+
+                // Create a document fragment for batch insertion
+                const fragment = document.createDocumentFragment();
+
+                imagesToRender.forEach((image, idx) => {
+                    const index = startIndex + idx;
+                    const imageUrl = `${TMDB_IMAGE_BASE}${image.file_path}`;
+                    const originalUrl = `${TMDB_IMAGE_ORIGINAL}${image.file_path}`;
+
+                    if (!loadMore) {
+                        state.currentImages.push(originalUrl);
+                    } else if (index >= state.currentImages.length) {
+                        state.currentImages.push(originalUrl);
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = `image-card ${imageType}`;
+                    card.dataset.index = index;
+
+                    card.innerHTML = `
+                        <div class="image-wrapper">
+                            <img 
+                                src="${imageUrl}"
+                                alt="${state.currentMedia.title} - Image ${index + 1}"
+                                loading="lazy"
+                                onload="this.classList.add('loaded')"
+                                onerror="this.style.display='none'"
+                            >
+                        </div>
+                    `;
+
+                    card.addEventListener('click', () => {
+                        haptic('medium');
+                        openLightbox(index);
+                    });
+
+                    fragment.appendChild(card);
+                });
+
+                elements.imagesContainer.appendChild(fragment);
+
+                state.galleryLoadedCount = endIndex;
+
+                if (endIndex < images.length) {
+                    elements.loadMoreGallery.style.display = 'block';
+                } else {
+                    elements.loadMoreGallery.style.display = 'none';
+                }
+            }
+
+            function loadMoreGallery() {
+                if (state.isLoading || state.galleryLoadedCount >= state.allImages.length) {
+                    elements.loadMoreGallery.style.display = 'none';
+                    return;
+                }
+
+                renderImages(true);
+            }
+
+            function openLightbox(index) {
+                if (state.currentImages.length === 0) return;
+
+                state.currentImageIndex = index;
+                resetZoom();
+                updateLightboxImage();
+                elements.lightbox.classList.add('active');
+
+                setupBackButton(() => {
+                    haptic('light');
+                    closeLightbox();
+                });
+            }
+
+            function updateLightboxImage() {
+                const url = state.currentImages[state.currentImageIndex];
+                elements.lightboxImg.src = url;
+
+                elements.prevBtn.disabled = state.currentImageIndex === 0;
+                elements.nextBtn.disabled = state.currentImageIndex === state.currentImages.length - 1;
+            }
+
+            function closeLightbox() {
+                elements.lightbox.classList.remove('active');
+                elements.lightboxImg.src = '';
+                resetZoom();
+
+                if (state.currentView === 'gallery') {
+                    setupBackButton(() => {
+                        haptic('light');
+                        navigateBack();
+                    });
+                }
+            }
+
+            function navigateImage(direction) {
+                const newIndex = state.currentImageIndex + direction;
+                if (newIndex >= 0 && newIndex < state.currentImages.length) {
+                    state.currentImageIndex = newIndex;
+                    resetZoom();
+                    updateLightboxImage();
+                    haptic('light');
+                }
+            }
+
+            function resetZoom() {
+                state.zoom = {
+                    scale: 1,
+                    posX: 0,
+                    posY: 0,
+                    isDragging: false,
+                    lastPosX: 0,
+                    lastPosY: 0,
+                    startX: 0,
+                    startY: 0
+                };
+                applyZoom();
+            }
+
+            function applyZoom() {
+                const transform = `translate(${state.zoom.posX}px, ${state.zoom.posY}px) scale(${state.zoom.scale})`;
+                elements.lightboxImg.style.transform = transform;
+            }
+
+            function setupZoomAndSwipe() {
+                const container = elements.lightboxImgContainer;
+                const img = elements.lightboxImg;
+
+                let touch1 = null;
+                let touch2 = null;
+                let initialDistance = 0;
+                let initialScale = 1;
+                let swipeStartX = 0;
+                let swipeStartY = 0;
+                let isZooming = false;
+                let isSwiping = false;
+
+                container.addEventListener('touchstart', (e) => {
+                    if (e.touches.length === 2) {
+                        // Start pinch zoom
+                        touch1 = e.touches[0];
+                        touch2 = e.touches[1];
+                        initialDistance = Math.hypot(
+                            touch2.pageX - touch1.pageX,
+                            touch2.pageY - touch1.pageY
+                        );
+                        initialScale = state.zoom.scale;
+                        isZooming = true;
+                        isSwiping = false;
+                        e.preventDefault();
+                    } else if (e.touches.length === 1) {
+                        // Start swipe or drag
+                        swipeStartX = e.touches[0].pageX;
+                        swipeStartY = e.touches[0].pageY;
+                        state.zoom.startX = e.touches[0].pageX - state.zoom.posX;
+                        state.zoom.startY = e.touches[0].pageY - state.zoom.posY;
+                        isSwiping = true;
+                        isZooming = false;
+
+                        if (state.zoom.scale > 1) {
+                            state.zoom.isDragging = true;
+                        }
+                    }
+                }, { passive: false });
+
+                container.addEventListener('touchmove', (e) => {
+                    if (e.touches.length === 2 && isZooming) {
+                        // Handle pinch zoom
+                        touch1 = e.touches[0];
+                        touch2 = e.touches[1];
+                        const currentDistance = Math.hypot(
+                            touch2.pageX - touch1.pageX,
+                            touch2.pageY - touch1.pageY
+                        );
+                        const newScale = Math.min(Math.max(initialScale * (currentDistance / initialDistance), 1), 4);
+                        state.zoom.scale = newScale;
+
+                        if (newScale === 1) {
+                            state.zoom.posX = 0;
+                            state.zoom.posY = 0;
+                        }
+
+                        applyZoom();
+                        haptic('soft');
+                        e.preventDefault();
+                    } else if (e.touches.length === 1 && isSwiping) {
+                        if (state.zoom.scale > 1) {
+                            // Handle image drag when zoomed
+                            const maxX = (img.offsetWidth * (state.zoom.scale - 1)) / 2;
+                            const maxY = (img.offsetHeight * (state.zoom.scale - 1)) / 2;
+
+                            let newX = e.touches[0].pageX - state.zoom.startX;
+                            let newY = e.touches[0].pageY - state.zoom.startY;
+
+                            newX = Math.min(Math.max(newX, -maxX), maxX);
+                            newY = Math.min(Math.max(newY, -maxY), maxY);
+
+                            state.zoom.posX = newX;
+                            state.zoom.posY = newY;
+
+                            applyZoom();
+                            e.preventDefault();
+                        }
+                    }
+                }, { passive: false });
+
+                container.addEventListener('touchend', (e) => {
+                    if (e.touches.length === 0) {
+                        // Handle swipe gesture for navigation (only when not zoomed)
+                        if (isSwiping && !isZooming && state.zoom.scale === 1) {
+                            const swipeEndX = e.changedTouches[0].pageX;
+                            const swipeDistance = swipeStartX - swipeEndX;
+
+                            // Only navigate if swipe is horizontal and significant
+                            if (Math.abs(swipeDistance) > 50) {
+                                if (swipeDistance > 0 && state.currentImageIndex < state.currentImages.length - 1) {
+                                    navigateImage(1);
+                                } else if (swipeDistance < 0 && state.currentImageIndex > 0) {
+                                    navigateImage(-1);
+                                }
+                                haptic('light');
+                            }
+                        }
+
+                        state.zoom.isDragging = false;
+                        isZooming = false;
+                        isSwiping = false;
+
+                        if (state.zoom.scale === 1) {
+                            state.zoom.posX = 0;
+                            state.zoom.posY = 0;
+                            applyZoom();
+                        }
+                    }
+                }, { passive: true });
+
+                img.addEventListener('dblclick', () => {
+                    if (state.zoom.scale > 1) {
+                        resetZoom();
+                    } else {
+                        state.zoom.scale = 2.5;
+                        applyZoom();
+                    }
+                    haptic('medium');
+                });
+            }
+
+            async function downloadImage() {
+                const url = state.currentImages[state.currentImageIndex];
+
+                try {
+                    if (tg?.downloadFile) {
+                        const filename = `${state.currentMedia.title.replace(/[^a-z0-9]/gi, '_')}_${state.currentImageIndex + 1}.jpg`;
+                        tg.downloadFile({ url, file_name: filename }, (result) => {
+                            if (result) {
+                                showToast('Download started', 'success');
+                            } else {
+                                showToast('Download cancelled', 'warning');
+                            }
+                        });
+                    } else {
+                        const response = await fetch(url);
+                        const blob = await response.blob();
+                        const blobUrl = window.URL.createObjectURL(blob);
+
+                        const a = document.createElement('a');
+                        a.href = blobUrl;
+                        a.download = `paradox-poster-${Date.now()}.jpg`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(blobUrl);
+
+                        showToast('Downloaded successfully', 'success');
+                    }
+                } catch (error) {
+                    console.error('Download error:', error);
+                    showToast('Download failed', 'error');
+                }
+            }
+
+            function copyImageLink() {
+                const url = state.currentImages[state.currentImageIndex];
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url)
+                        .then(() => showToast('Link copied to clipboard', 'success'))
+                        .catch(() => showToast('Failed to copy link', 'error'));
+                } else {
+                    const input = document.createElement('input');
+                    input.value = url;
+                    document.body.appendChild(input);
+                    input.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(input);
+                    showToast('Link copied to clipboard', 'success');
+                }
+            }
+
+            async function loadMore() {
+                if (state.isLoading || !state.hasMore) return;
+
+                state.isLoading = true;
+                elements.loadMore.style.display = 'block';
+                state.currentPage++;
+
+                try {
+                    const results = await loadDiscoverMovies(state.currentPage);
+
+                    if (results.length > 0) {
+                        // Append new results without clearing existing ones
+                        state.discoverResults = [...state.discoverResults, ...results];
+                        renderSearchResults();
+                    }
+                } catch (error) {
+                    console.error('Load more error:', error);
+                    showToast('Failed to load more', 'error');
+                } finally {
+                    state.isLoading = false;
+                    elements.loadMore.style.display = 'none';
+                }
+            }
+
+            function initEventListeners() {
+                elements.searchBtn.addEventListener('click', () => {
+                    haptic('medium');
+                    searchTMDB(elements.searchInput.value.trim());
+                });
+
+                elements.searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        haptic('medium');
+                        searchTMDB(elements.searchInput.value.trim());
+                    }
+                });
+
+                elements.searchInput.addEventListener('input', (e) => {
+                    handleLiveSearch(e.target.value);
+                });
+
+                elements.searchClear.addEventListener('click', () => {
+                    haptic('light');
+                    elements.searchInput.value = '';
+                    elements.searchClear.classList.remove('show');
+                    elements.searchInput.focus();
+
+                    state.isSearchMode = false;
+                    state.currentPage = 1;
+                    renderSearchResults();
+                });
+
+                elements.closeLightbox.addEventListener('click', () => {
+                    haptic('light');
+                    closeLightbox();
+                });
+
+                elements.lightbox.addEventListener('click', (e) => {
+                    if (e.target === elements.lightbox) {
+                        haptic('light');
+                        closeLightbox();
+                    }
+                });
+
+                elements.prevBtn.addEventListener('click', () => {
+                    haptic('light');
+                    navigateImage(-1);
+                });
+
+                elements.nextBtn.addEventListener('click', () => {
+                    haptic('light');
+                    navigateImage(1);
+                });
+
+                elements.downloadBtn.addEventListener('click', () => {
+                    haptic('medium');
+                    downloadImage();
+                });
+
+                elements.copyBtn.addEventListener('click', () => {
+                    haptic('medium');
+                    copyImageLink();
+                });
+
+                elements.scrollTopBtn.addEventListener('click', () => {
+                    haptic('light');
+                    scrollToTop(true);
+                });
+
+                elements.mainContent.addEventListener('scroll', () => {
+                    const scrollTop = elements.mainContent.scrollTop;
+                    const scrollHeight = elements.mainContent.scrollHeight;
+                    const clientHeight = elements.mainContent.clientHeight;
+
+                    updateScrollTopButton();
+
+                    if (state.currentView === 'search' && !state.isSearchMode && scrollHeight - scrollTop - clientHeight < 300) {
+                        loadMore();
+                    } else if (state.currentView === 'gallery' && scrollHeight - scrollTop - clientHeight < 300) {
+                        loadMoreGallery();
+                    }
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if (elements.lightbox.classList.contains('active')) {
+                        if (e.key === 'Escape') {
+                            closeLightbox();
+                        } else if (e.key === 'ArrowLeft') {
+                            navigateImage(-1);
+                        } else if (e.key === 'ArrowRight') {
+                            navigateImage(1);
+                        }
+                    }
+                });
+
+                setupZoomAndSwipe();
+                setupUserProfile();
+            }
+
+            async function init() {
+                initEventListeners();
+
+                showLoadingSkeletons();
+
+                const results = await loadDiscoverMovies(1);
+
+                if (results.length > 0) {
+                    renderSearchResults();
+                } else {
+                    showEmptyState('Failed to load movies', 'Please try again');
+                }
+
+                if (tg?.initDataUnsafe?.start_param) {
+                    const startParam = tg.initDataUnsafe.start_param;
+                    if (startParam.startsWith('search_')) {
+                        const query = decodeURIComponent(startParam.replace('search_', '').replace(/_/g, ' '));
+                        elements.searchInput.value = query;
+                        setTimeout(() => searchTMDB(query), 500);
+                    }
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+        })();
+    </script>
+
+</body>
+</html>
