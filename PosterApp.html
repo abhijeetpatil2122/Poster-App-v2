@@ -7,919 +7,261 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
-    <meta name="description" content="Paradox Poster - Movie & TV Image Gallery">
-    <title>Paradox Poster</title>
+    <meta name="description" content="Poster Pulse - Fast Telegram Movie & TV Poster Mini App">
+    <title>Poster Pulse</title>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
         :root {
             --tg-theme-bg-color: #ffffff;
-            --tg-theme-text-color: #000000;
-            --tg-theme-hint-color: #999999;
-            --tg-theme-link-color: #2481cc;
-            --tg-theme-button-color: #2481cc;
+            --tg-theme-text-color: #111827;
+            --tg-theme-hint-color: #6b7280;
+            --tg-theme-link-color: #2563eb;
+            --tg-theme-button-color: #2563eb;
             --tg-theme-button-text-color: #ffffff;
-            --tg-theme-secondary-bg-color: #f4f4f5;
-            --border-color: rgba(0, 0, 0, 0.08);
+            --tg-theme-secondary-bg-color: #f3f4f6;
+            --border-color: color-mix(in srgb, var(--tg-theme-hint-color) 24%, transparent);
+            --surface: color-mix(in srgb, var(--tg-theme-secondary-bg-color) 50%, var(--tg-theme-bg-color));
+            --surface-2: var(--tg-theme-bg-color);
+            --radius: 16px;
+            --shadow: 0 8px 20px rgba(0, 0, 0, .08);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         html, body {
             height: 100%;
             overflow: hidden;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: var(--tg-theme-bg-color);
             color: var(--tg-theme-text-color);
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            user-select: none;
         }
 
         .app {
             height: 100vh;
+            max-width: 980px;
+            margin: 0 auto;
             display: flex;
             flex-direction: column;
-            max-width: 100%;
-            margin: 0 auto;
-            position: relative;
+            padding: max(env(safe-area-inset-top), 8px) 10px env(safe-area-inset-bottom);
+            gap: 10px;
         }
 
         .header {
-            background: var(--tg-theme-bg-color);
-            padding: max(env(safe-area-inset-top), 8px) 16px 12px;
-            position: relative;
             flex-shrink: 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: var(--tg-theme-button-color);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .logo-text {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--tg-theme-text-color);
-        }
-
-        .profile-section {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            position: relative;
-        }
-
-        .profile-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--tg-theme-secondary-bg-color);
+            border-radius: 18px;
+            padding: 12px 14px;
+            background: var(--surface-2);
             border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            animation: dropIn .28s ease;
+        }
+
+        @keyframes dropIn { from {opacity:0; transform: translateY(-6px);} to {opacity:1; transform:translateY(0);} }
+
+        .header-content { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .logo { display:flex; align-items:center; gap:10px; }
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+        }
+        .logo-text { font-size: 18px; font-weight: 800; color: var(--tg-theme-text-color); }
+        .logo-subtitle { font-size: 12px; color: var(--tg-theme-hint-color); }
+
+        .profile-section { position: relative; }
+        .profile-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: var(--surface);
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s ease;
-            overflow: hidden;
-            position: relative;
         }
-
-        .profile-btn:active {
-            transform: scale(0.95);
-        }
-
-        .profile-btn img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
+        .profile-btn img { width:100%; height:100%; object-fit:cover; }
         .profile-btn .profile-placeholder {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--tg-theme-button-color);
-            color: white;
-            font-weight: 600;
-            font-size: 14px;
+            width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+            font-weight:700; color:var(--tg-theme-text-color);
         }
 
         .profile-tooltip {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 8px;
-            background: var(--tg-theme-bg-color);
+            position:absolute; top: calc(100% + 10px); right:0; width:280px; z-index:1000;
+            background: var(--surface-2);
+            border:1px solid var(--border-color);
+            border-radius: 14px;
+            overflow:hidden;
+            box-shadow: var(--shadow);
+            opacity:0; visibility:hidden; transform: translateY(-8px); transition: all .18s ease;
+        }
+        .profile-tooltip.show { opacity:1; visibility:visible; transform: translateY(0); }
+        .profile-info { padding: 14px; border-bottom: 1px solid var(--border-color); }
+        .profile-name { font-size: 15px; font-weight: 700; }
+        .profile-userid { margin-top: 4px; color: var(--tg-theme-hint-color); font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+        .menu-item { display:flex; align-items:center; gap:10px; padding:12px 14px; text-decoration:none; color:var(--tg-theme-text-color); font-size:13px; font-weight:600; }
+        .menu-item:hover,.menu-item:active { background: var(--surface); }
+
+        .search-container { flex-shrink: 0; }
+        .search-container.hidden { display:none; }
+        .search-box { position:relative; border-radius: 14px; overflow:hidden; border:1px solid var(--border-color); background: var(--surface-2); }
+        .search-input { width:100%; border:none; outline:none; font-size:15px; color:var(--tg-theme-text-color); background: transparent; padding: 13px 94px 13px 14px; font-weight: 600; }
+        .search-input::placeholder { color: var(--tg-theme-hint-color); }
+        .search-actions { position:absolute; right:6px; top:50%; transform:translateY(-50%); display:flex; gap:6px; }
+        .search-clear,.search-btn { border:none; border-radius: 10px; display:flex; align-items:center; justify-content:center; }
+        .search-clear { width:34px; height:34px; background: var(--surface); color:var(--tg-theme-hint-color); opacity:0; pointer-events:none; }
+        .search-clear.show { opacity:1; pointer-events:auto; }
+        .search-btn { height:34px; padding:0 12px; background: var(--tg-theme-button-color); color:var(--tg-theme-button-text-color); font-size:12px; font-weight:700; }
+
+        .main { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling: touch; }
+        .main::-webkit-scrollbar { width: 0; }
+        .content-section { display:none; }
+        .content-section.active { display:block; animation: sectionIn .2s ease; }
+        @keyframes sectionIn { from {opacity:0; transform: translateY(6px);} to {opacity:1; transform: translateY(0);} }
+
+        .intro-panel {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+        .intro-title { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+        .intro-sub { color: var(--tg-theme-hint-color); font-size: 12px; margin-bottom: 10px; }
+        .intro-tags { display:flex; gap:7px; flex-wrap:wrap; }
+        .intro-tag { font-size: 11px; font-weight: 700; background: var(--surface-2); color:var(--tg-theme-link-color); padding: 5px 9px; border-radius: 999px; border: 1px solid var(--border-color); }
+
+        .results-container, .images-container { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 11px; min-height: 50vh; }
+        @media (min-width: 820px) { .results-container, .images-container { grid-template-columns: repeat(4,minmax(0,1fr)); } .image-card.backdrop { grid-column: span 2; } }
+
+        .result-card, .image-card {
+            border-radius: 14px;
+            overflow: hidden;
+            background: var(--surface-2);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,.06);
+            transition: transform .15s ease;
+        }
+        .result-card:active, .image-card:active { transform: scale(.985); }
+        .result-poster { position:relative; width:100%; aspect-ratio: 2/3; background: var(--surface); }
+        .image-wrapper { position:relative; width:100%; background: var(--surface); }
+        .image-card.backdrop .image-wrapper { aspect-ratio: 16/9; }
+        .image-card.poster .image-wrapper { aspect-ratio: 2/3; }
+        .image-card.logo .image-wrapper { aspect-ratio: 16/9; background: var(--surface); }
+        .result-poster img,.image-wrapper img { width:100%; height:100%; object-fit: cover; opacity:0; transition:opacity .2s ease; }
+        .image-card.logo img { object-fit: contain; padding: 12px; }
+        .result-poster img.loaded,.image-wrapper img.loaded { opacity:1; }
+
+        .result-info { padding: 10px; }
+        .result-title { font-size: 13px; font-weight: 700; line-height: 1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient: vertical; overflow:hidden; }
+        .result-meta { margin-top:6px; font-size:11px; color:var(--tg-theme-hint-color); display:flex; gap:6px; align-items:center; }
+        .type-badge { border-radius:999px; padding:3px 7px; font-size:10px; font-weight:700; text-transform:uppercase; }
+        .type-movie { background: color-mix(in srgb, var(--tg-theme-button-color) 15%, transparent); color: var(--tg-theme-link-color); }
+        .type-tv { background: color-mix(in srgb, #10b981 18%, transparent); color: #0f766e; }
+
+        .gallery-header { position: sticky; top: 0; z-index: 11; }
+        .gallery-title {
+            margin-bottom: 8px;
             border-radius: 12px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
-            width: 280px;
-            z-index: 1000;
-            opacity: 0;
-            transform: translateY(-10px);
-            visibility: hidden;
-            transition: all 0.2s ease;
-            overflow: hidden;
-        }
-
-        .profile-tooltip.show {
-            opacity: 1;
-            transform: translateY(0);
-            visibility: visible;
-        }
-
-        .profile-info {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .profile-name {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: var(--tg-theme-text-color);
-        }
-
-        .profile-userid {
+            padding: 10px 12px;
+            border:1px solid var(--border-color);
+            background: var(--surface-2);
             font-size: 13px;
-            color: var(--tg-theme-hint-color);
-            font-family: 'Monaco', 'Courier New', monospace;
-        }
-
-        .profile-menu {
-            padding: 8px 0;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            color: var(--tg-theme-text-color);
-            text-decoration: none;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-        .menu-item:hover,
-        .menu-item:active {
-            background: var(--tg-theme-secondary-bg-color);
-        }
-
-        .menu-item svg {
-            opacity: 0.7;
-        }
-
-        .menu-item span {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .search-container {
-            padding: 12px 16px;
-            background: var(--tg-theme-bg-color);
-            border-bottom: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-        }
-
-        .search-container.hidden {
-            display: none;
-        }
-
-        .search-box {
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 10px 90px 10px 14px;
-            background: var(--tg-theme-secondary-bg-color);
-            border: 2px solid transparent;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 400;
-            color: var(--tg-theme-text-color);
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            border-color: var(--tg-theme-button-color);
-            box-shadow: 0 0 0 3px rgba(36, 129, 204, 0.1);
-        }
-
-        .search-input::placeholder {
-            color: var(--tg-theme-hint-color);
-        }
-
-        .search-actions {
-            position: absolute;
-            right: 4px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            gap: 4px;
-        }
-
-        .search-clear,
-        .search-btn {
-            background: none;
-            border: none;
-            padding: 8px;
-            cursor: pointer;
-            color: var(--tg-theme-button-color);
-            transition: all 0.2s ease;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .search-clear {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .search-clear.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .search-btn {
-            background: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
-            padding: 8px 12px;
-            font-weight: 600;
-            font-size: 13px;
-        }
-
-        .search-btn:active {
-            transform: scale(0.95);
-        }
-
-        .main {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            padding: 0 0 env(safe-area-inset-bottom) 0;
-        }
-
-        .main::-webkit-scrollbar {
-            width: 0;
-        }
-
-        .content-section {
-            display: none;
-        }
-
-        .content-section.active {
-            display: block;
-            animation: slideInUp 0.3s ease-out;
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .results-container {
-            padding: 12px 16px;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            min-height: 50vh;
-        }
-
-        @media (min-width: 768px) {
-            .results-container {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        .result-card {
-            background: var(--tg-theme-bg-color);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-            transition: all 0.2s ease;
-            cursor: pointer;
-            animation: slideUp 0.3s ease-out backwards;
-            will-change: transform, opacity;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .result-card:active {
-            transform: scale(0.98);
-        }
-
-        .result-poster {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 2/3;
-            background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
-            overflow: hidden;
-            border-radius: 8px;
-        }
-
-        body.dark .result-poster {
-            background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
-        }
-
-        .result-poster img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            border-radius: 8px;
-            will-change: opacity;
-        }
-
-        .result-poster img.loaded {
-            opacity: 1;
-        }
-
-        .result-info {
-            padding: 10px;
-        }
-
-        .result-title {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 4px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            line-height: 1.3;
-        }
-
-        .result-meta {
-            font-size: 12px;
-            color: var(--tg-theme-hint-color);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .type-badge {
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .type-movie {
-            background: rgba(36, 129, 204, 0.15);
-            color: var(--tg-theme-button-color);
-        }
-
-        .type-tv {
-            background: rgba(16, 185, 129, 0.15);
-            color: #10b981;
-        }
-
-        .gallery-header {
-            background: var(--tg-theme-bg-color);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .gallery-tabs {
-            display: flex;
-            background: var(--tg-theme-bg-color);
-            border-bottom: 1px solid var(--border-color);
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            gap: 8px;
-            padding: 10px 16px;
-            will-change: scroll-position;
-        }
-
-        .gallery-tabs::-webkit-scrollbar {
-            display: none;
-        }
-
-        .tab-btn {
-            flex-shrink: 0;
-            padding: 8px 14px;
-            background: var(--tg-theme-secondary-bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            color: var(--tg-theme-text-color);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            will-change: transform;
-        }
-
-        .tab-btn.active {
-            background: var(--tg-theme-button-color);
-            border-color: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
-        }
-
-        .tab-btn:active {
-            transform: scale(0.95);
-        }
-
-        .tab-badge {
-            background: rgba(255, 255, 255, 0.25);
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 11px;
             font-weight: 700;
+            display:none;
         }
+        .gallery-title.show { display:block; }
+        .gallery-tabs, .language-filter { display:flex; gap:8px; overflow-x:auto; padding: 8px; border:1px solid var(--border-color); border-radius: 13px; background: var(--surface-2); margin-bottom:8px; }
+        .gallery-tabs::-webkit-scrollbar,.language-filter::-webkit-scrollbar { display:none; }
+        .language-filter.hidden { display:none; }
+        .tab-btn,.lang-btn { flex-shrink:0; border:none; border-radius: 999px; padding: 7px 12px; font-size: 12px; font-weight:700; color:var(--tg-theme-link-color); background: var(--surface); }
+        .tab-btn.active,.lang-btn.active { background: var(--tg-theme-button-color); color:var(--tg-theme-button-text-color); }
+        .tab-badge { font-size: 10px; padding: 2px 6px; border-radius:999px; background: color-mix(in srgb, white 40%, transparent); }
 
-        .tab-btn:not(.active) .tab-badge {
-            background: var(--tg-theme-button-color);
-            color: white;
-        }
+        .lightbox { position:fixed; inset:0; background: rgba(0,0,0,.94); z-index:1000; display:none; align-items:center; justify-content:center; }
+        .lightbox.active { display:flex; }
+        .lightbox-content,.lightbox-img-container { width:100%; height:100%; display:flex; align-items:center; justify-content:center; touch-action: pan-y pinch-zoom; }
+        .lightbox-img { max-width:100%; max-height:100%; object-fit: contain; transition: transform .08s linear; will-change: transform; }
+        .close-lightbox,.nav-btn,.lightbox-btn { border:none; color:white; background: rgba(255,255,255,.18); }
+        .close-lightbox { position:fixed; top: calc(max(env(safe-area-inset-top), 8px) + 8px); right:10px; width:42px; height:42px; border-radius:50%; font-size:24px; z-index:1001; }
+        .nav-btn { position: fixed; top: 50%; transform: translateY(-50%); width:42px; height:42px; border-radius:50%; z-index:1001; }
+        .nav-btn.prev { left: 10px; }
+        .nav-btn.next { right: 10px; }
+        .nav-btn:disabled { opacity: .3; pointer-events: none; }
+        .lightbox-controls { position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); left:0; right:0; display:flex; justify-content:center; gap:10px; z-index:1001; }
+        .lightbox-btn { width:46px; height:46px; border-radius:50%; }
 
-        .language-filter {
-            padding: 10px 16px;
-            background: var(--tg-theme-secondary-bg-color);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            will-change: scroll-position;
-        }
+        .skeleton { background: linear-gradient(90deg, #eceff3 20%, #f8fafc 45%, #eceff3 80%); background-size: 220% 100%; animation: shimmer 1.1s linear infinite; border-radius: 8px; }
+        @keyframes shimmer { to { background-position: -220% 0; } }
 
-        .language-filter::-webkit-scrollbar {
-            display: none;
-        }
+        .toast { position: fixed; bottom: 18px; left:50%; transform: translate(-50%,100px); background:var(--tg-theme-button-color); color:var(--tg-theme-button-text-color); border-radius:999px; padding:10px 16px; z-index:10000; box-shadow:0 8px 22px rgba(0,0,0,.2); transition: transform .2s ease; }
+        .toast.show { transform: translate(-50%, 0); }
+        .toast.success { background: #0f9a66; }
+        .toast.error { background: #d83955; }
+        .toast.warning { background: #e58a1f; }
+        .toast-text { font-size: 13px; font-weight: 700; }
 
-        .language-filter.hidden {
-            display: none;
-        }
+        .empty-state { text-align: center; padding: 54px 14px; }
+        .empty-icon { width: 56px; height: 56px; margin: 0 auto 12px; opacity: .45; }
+        .empty-title { font-size: 15px; font-weight: 700; }
+        .empty-text { margin-top: 6px; font-size: 13px; color: var(--tg-theme-hint-color); }
 
-        .lang-btn {
-            padding: 6px 14px;
-            background: var(--tg-theme-bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            color: var(--tg-theme-text-color);
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s ease;
-            will-change: transform;
-        }
-
-        .lang-btn.active {
-            background: var(--tg-theme-button-color);
-            border-color: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
-        }
-
-        .lang-btn:active {
-            transform: scale(0.95);
-        }
-
-        .images-container {
-            padding: 12px 16px;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            min-height: 50vh;
-            will-change: contents;
-        }
-
-        .image-card {
-            background: var(--tg-theme-bg-color);
-            border-radius: 12px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid var(--border-color);
-            position: relative;
-            animation: fadeIn 0.3s ease-out backwards;
-            will-change: transform, opacity;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        .image-card:active {
-            transform: scale(0.98);
-        }
-
-        .image-card.backdrop {
-            grid-column: span 2;
-        }
-
-        .image-wrapper {
-            position: relative;
-            width: 100%;
-            background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
-            overflow: hidden;
-            will-change: contents;
-        }
-
-        body.dark .image-wrapper {
-            background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
-        }
-
-        .image-card.backdrop .image-wrapper {
-            aspect-ratio: 16/9;
-        }
-
-        .image-card.poster .image-wrapper {
-            aspect-ratio: 2/3;
-        }
-
-        .image-card.logo .image-wrapper {
-            aspect-ratio: 16/9;
-            background: var(--tg-theme-secondary-bg-color);
-        }
-
-        .image-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            will-change: opacity;
-        }
-
-        .image-wrapper img.loaded {
-            opacity: 1;
-        }
-
-        .image-card.logo img {
-            object-fit: contain;
-            padding: 10px;
-        }
-
-        .lightbox {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .lightbox.active {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .lightbox-content {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .lightbox-img-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            touch-action: none;
-        }
-
-        .lightbox-img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            user-select: none;
-            transition: transform 0.3s ease;
-            transform-origin: center center;
-            will-change: transform;
-        }
-
-        .lightbox-controls {
-            position: fixed;
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            padding: 0 20px;
-            z-index: 1001;
-        }
-
-        .lightbox-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border: none;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .lightbox-btn:active {
-            transform: scale(0.9);
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        .close-lightbox {
-            position: fixed;
-            top: calc(max(env(safe-area-inset-top), 10px) + 10px);
-            right: 10px;
-            width: 44px;
-            height: 44px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border: none;
-            border-radius: 50%;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1001;
-        }
-
-        .nav-btn {
-            position: fixed;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 44px;
-            height: 44px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border: none;
-            border-radius: 50%;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            z-index: 1001;
-        }
-
-        .nav-btn.prev {
-            left: 10px;
-        }
-
-        .nav-btn.next {
-            right: 10px;
-        }
-
-        .nav-btn:active {
-            transform: translateY(-50%) scale(0.9);
-        }
-
-        .nav-btn:disabled {
-            opacity: 0.3;
-            pointer-events: none;
-        }
-
-        .skeleton {
-            background: linear-gradient(90deg, var(--tg-theme-secondary-bg-color) 25%, var(--border-color) 50%, var(--tg-theme-secondary-bg-color) 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 8px;
-        }
-
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--tg-theme-button-color);
-            padding: 10px 20px;
-            border-radius: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            z-index: 10000;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            min-height: 40px;
-            max-width: 90%;
-            backdrop-filter: blur(10px);
-        }
-
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
-
-        .toast.success {
-            background: linear-gradient(135deg, #10b981 0%, #0da271 100%);
-        }
-
-        .toast.error {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        }
-
-        .toast.info {
-            background: linear-gradient(135deg, var(--tg-theme-button-color) 0%, #1d6fb8 100%);
-        }
-
-        .toast.warning {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        }
-
-        .toast-text {
-            font-size: 14px;
-            font-weight: 500;
-            color: white;
-            text-align: center;
-            line-height: 1.4;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-        }
-
-        .empty-icon {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 16px;
-            opacity: 0.3;
-            color: var(--tg-theme-hint-color);
-        }
-
-        .empty-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .empty-text {
-            font-size: 14px;
-            color: var(--tg-theme-hint-color);
-        }
-
-        .load-more {
-            padding: 16px;
-            text-align: center;
-        }
-
-        .load-more-spinner {
-            width: 28px;
-            height: 28px;
-            border: 3px solid var(--border-color);
-            border-top-color: var(--tg-theme-button-color);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        .load-more { padding: 14px 0; text-align: center; }
+        .load-more-spinner, .loading-spinner { width: 28px; height: 28px; border: 3px solid color-mix(in srgb, var(--tg-theme-hint-color) 30%, transparent); border-top-color: var(--tg-theme-button-color); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .scroll-top-btn {
             position: fixed;
-            bottom: 20px;
+            bottom: 16px;
             right: 16px;
             width: 48px;
             height: 48px;
+            border-radius: 50%;
+            border: none;
             background: var(--tg-theme-button-color);
             color: var(--tg-theme-button-text-color);
-            border: none;
-            border-radius: 50%;
+            box-shadow: 0 8px 20px rgba(0,0,0,.24);
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
             opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.3s ease;
+            transform: translateY(18px);
+            transition: all .2s ease;
             z-index: 999;
-            box-shadow: 0 4px 16px rgba(36, 129, 204, 0.3);
         }
-
-        .scroll-top-btn.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .scroll-top-btn:active {
-            transform: scale(0.95);
-        }
-
-        .scroll-top-btn svg {
-            width: 20px;
-            height: 20px;
-        }
+        .scroll-top-btn.show { opacity:1; transform: translateY(0); }
 
         .loading-overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--tg-theme-bg-color);
+            inset: 0;
+            border-radius: 14px;
+            background: color-mix(in srgb, var(--tg-theme-bg-color) 90%, transparent);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 100;
-            transition: opacity 0.3s ease;
+            transition: opacity .2s ease;
+        }
+        .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+        body.dark {
+            --surface: color-mix(in srgb, var(--tg-theme-secondary-bg-color) 75%, var(--tg-theme-bg-color));
+            --surface-2: color-mix(in srgb, var(--tg-theme-secondary-bg-color) 45%, var(--tg-theme-bg-color));
+            --shadow: 0 10px 24px rgba(0,0,0,.35);
         }
 
-        .loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--border-color);
-            border-top-color: var(--tg-theme-button-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-    </style>
+</style>
 </head>
 <body>
 
@@ -972,7 +314,10 @@
                             <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
                         </svg>
                     </div>
-                    <div class="logo-text">Paradox Poster</div>
+                    <div>
+                        <div class="logo-text">Poster Pulse</div>
+                        <div class="logo-subtitle">TG theme-first • faster experience</div>
+                    </div>
                 </div>
                 <div class="profile-section">
                     <div class="profile-btn" id="profileBtn">
@@ -1019,6 +364,15 @@
 
         <main class="main" id="mainContent">
             <section class="content-section active" id="searchSection">
+                <div class="intro-panel">
+                    <div class="intro-title">Faster poster miniapp, cleaner UI.</div>
+                    <div class="intro-sub">Performance-first redesign using Telegram theme colors with smoother gallery interaction.</div>
+                    <div class="intro-tags">
+                        <span class="intro-tag">🎨 Telegram theme based</span>
+                        <span class="intro-tag">⚡ Lower-lag scrolling</span>
+                        <span class="intro-tag">🖼 Better gallery swipe</span>
+                    </div>
+                </div>
                 <div class="results-container" id="resultsContainer"></div>
                 <div class="load-more" id="loadMore" style="display:none;">
                     <div class="load-more-spinner"></div>
@@ -1030,6 +384,7 @@
                     <div class="loading-spinner"></div>
                 </div>
                 <div class="gallery-header">
+                    <div class="gallery-title" id="galleryTitle"></div>
                     <div class="gallery-tabs" id="galleryTabs"></div>
                     <div class="language-filter" id="languageFilter"></div>
                 </div>
@@ -1164,6 +519,7 @@
                 mainContent: document.getElementById('mainContent'),
                 scrollTopBtn: document.getElementById('scrollTopBtn'),
                 galleryLoading: document.getElementById('galleryLoading'),
+                galleryTitle: document.getElementById('galleryTitle'),
                 profileBtn: document.getElementById('profileBtn'),
                 profileTooltip: document.getElementById('profileTooltip'),
                 profilePlaceholder: document.getElementById('profilePlaceholder'),
@@ -1249,62 +605,47 @@
             }
 
             function setupUserProfile() {
-                if (!state.userData) return;
+                const user = state.userData;
+                const fullName = user ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : 'Telegram User';
+                const userIdText = user?.userId ? `ID: ${user.userId}` : 'ID: Not available';
 
-                // Set user name
-                const fullName = `${state.userData.firstName}${state.userData.lastName ? ' ' + state.userData.lastName : ''}`;
                 elements.profileName.textContent = fullName || 'Telegram User';
-                elements.profileUserId.textContent = `ID: ${state.userData.userId}`;
+                elements.profileUserId.textContent = userIdText;
+                elements.profilePlaceholder.textContent = (fullName || 'T').charAt(0).toUpperCase();
 
-                // Set profile placeholder with first letter
-                if (fullName) {
-                    elements.profilePlaceholder.textContent = fullName.charAt(0).toUpperCase();
-                }
-
-                // Load profile photo if available
-                if (state.userData.photoUrl) {
+                if (user?.photoUrl) {
                     const img = new Image();
                     img.onload = function() {
                         elements.profileBtn.innerHTML = '';
                         const profileImg = document.createElement('img');
-                        profileImg.src = state.userData.photoUrl;
+                        profileImg.src = user.photoUrl;
                         profileImg.alt = fullName;
                         elements.profileBtn.appendChild(profileImg);
                     };
-                    img.onerror = function() {
-                        // Keep placeholder if image fails to load
-                    };
-                    img.src = state.userData.photoUrl;
+                    img.src = user.photoUrl;
                 }
 
-                // Toggle profile tooltip
+                const toggleProfile = (open) => {
+                    state.profileOpen = open;
+                    elements.profileTooltip.classList.toggle('show', open);
+                };
+
                 elements.profileBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     haptic('light');
-                    state.profileOpen = !state.profileOpen;
-                    if (state.profileOpen) {
-                        elements.profileTooltip.classList.add('show');
-                    } else {
-                        elements.profileTooltip.classList.remove('show');
-                    }
+                    toggleProfile(!state.profileOpen);
                 });
 
-                // Close tooltip when clicking outside
                 document.addEventListener('click', (e) => {
-                    if (state.profileOpen && 
-                        !elements.profileBtn.contains(e.target) && 
-                        !elements.profileTooltip.contains(e.target)) {
-                        state.profileOpen = false;
-                        elements.profileTooltip.classList.remove('show');
+                    if (state.profileOpen && !elements.profileBtn.contains(e.target) && !elements.profileTooltip.contains(e.target)) {
+                        toggleProfile(false);
                     }
                 });
 
-                // Handle developer link
-                elements.developerLink.addEventListener('click', (e) => {
+                elements.developerLink.addEventListener('click', () => {
                     haptic('medium');
                     showToast('Opening Telegram...', 'info');
-                    state.profileOpen = false;
-                    elements.profileTooltip.classList.remove('show');
+                    toggleProfile(false);
                 });
             }
 
@@ -1461,6 +802,10 @@
                         title: media.title || media.name || 'Unknown',
                         year: (media.release_date || media.first_air_date || '').split('-')[0]
                     };
+
+                    const mediaLabel = `${state.currentMedia.title}${state.currentMedia.year ? ` • ${state.currentMedia.year}` : ''}`;
+                    elements.galleryTitle.textContent = mediaLabel;
+                    elements.galleryTitle.classList.add('show');
 
                     // Hide loading and setup gallery
                     setTimeout(() => {
@@ -1625,6 +970,8 @@
                     }, 50);
 
                     elements.scrollTopBtn.classList.remove('show');
+                    elements.galleryTitle.classList.remove('show');
+                    elements.galleryTitle.textContent = '';
                     hideBackButton();
                     elements.mainContent.scrollTop = 0;
                 }
@@ -1969,111 +1316,92 @@
                 const container = elements.lightboxImgContainer;
                 const img = elements.lightboxImg;
 
-                let touch1 = null;
-                let touch2 = null;
-                let initialDistance = 0;
-                let initialScale = 1;
+                let pinchStartDistance = 0;
+                let pinchStartScale = 1;
                 let swipeStartX = 0;
                 let swipeStartY = 0;
-                let isZooming = false;
-                let isSwiping = false;
+                let swipeDeltaX = 0;
+                let swipeDeltaY = 0;
+                let isPinching = false;
+                let canSwipe = false;
+
+                const SWIPE_THRESHOLD = 60;
+                const VERTICAL_TOLERANCE = 38;
 
                 container.addEventListener('touchstart', (e) => {
                     if (e.touches.length === 2) {
-                        // Start pinch zoom
-                        touch1 = e.touches[0];
-                        touch2 = e.touches[1];
-                        initialDistance = Math.hypot(
-                            touch2.pageX - touch1.pageX,
-                            touch2.pageY - touch1.pageY
-                        );
-                        initialScale = state.zoom.scale;
-                        isZooming = true;
-                        isSwiping = false;
-                        e.preventDefault();
-                    } else if (e.touches.length === 1) {
-                        // Start swipe or drag
-                        swipeStartX = e.touches[0].pageX;
-                        swipeStartY = e.touches[0].pageY;
-                        state.zoom.startX = e.touches[0].pageX - state.zoom.posX;
-                        state.zoom.startY = e.touches[0].pageY - state.zoom.posY;
-                        isSwiping = true;
-                        isZooming = false;
-
-                        if (state.zoom.scale > 1) {
-                            state.zoom.isDragging = true;
-                        }
+                        const [t1, t2] = e.touches;
+                        pinchStartDistance = Math.hypot(t2.pageX - t1.pageX, t2.pageY - t1.pageY);
+                        pinchStartScale = state.zoom.scale;
+                        isPinching = true;
+                        canSwipe = false;
+                        return;
                     }
-                }, { passive: false });
+
+                    if (e.touches.length === 1) {
+                        const touch = e.touches[0];
+                        swipeStartX = touch.pageX;
+                        swipeStartY = touch.pageY;
+                        swipeDeltaX = 0;
+                        swipeDeltaY = 0;
+                        isPinching = false;
+                        canSwipe = state.zoom.scale === 1;
+
+                        state.zoom.startX = touch.pageX - state.zoom.posX;
+                        state.zoom.startY = touch.pageY - state.zoom.posY;
+                        state.zoom.isDragging = state.zoom.scale > 1;
+                    }
+                }, { passive: true });
 
                 container.addEventListener('touchmove', (e) => {
-                    if (e.touches.length === 2 && isZooming) {
-                        // Handle pinch zoom
-                        touch1 = e.touches[0];
-                        touch2 = e.touches[1];
-                        const currentDistance = Math.hypot(
-                            touch2.pageX - touch1.pageX,
-                            touch2.pageY - touch1.pageY
-                        );
-                        const newScale = Math.min(Math.max(initialScale * (currentDistance / initialDistance), 1), 4);
-                        state.zoom.scale = newScale;
+                    if (e.touches.length === 2 && isPinching) {
+                        const [t1, t2] = e.touches;
+                        const distance = Math.hypot(t2.pageX - t1.pageX, t2.pageY - t1.pageY);
+                        state.zoom.scale = Math.min(Math.max(pinchStartScale * (distance / pinchStartDistance), 1), 4);
 
-                        if (newScale === 1) {
+                        if (state.zoom.scale === 1) {
                             state.zoom.posX = 0;
                             state.zoom.posY = 0;
                         }
 
                         applyZoom();
-                        haptic('soft');
                         e.preventDefault();
-                    } else if (e.touches.length === 1 && isSwiping) {
-                        if (state.zoom.scale > 1) {
-                            // Handle image drag when zoomed
-                            const maxX = (img.offsetWidth * (state.zoom.scale - 1)) / 2;
-                            const maxY = (img.offsetHeight * (state.zoom.scale - 1)) / 2;
+                        return;
+                    }
 
-                            let newX = e.touches[0].pageX - state.zoom.startX;
-                            let newY = e.touches[0].pageY - state.zoom.startY;
+                    if (e.touches.length !== 1) return;
 
-                            newX = Math.min(Math.max(newX, -maxX), maxX);
-                            newY = Math.min(Math.max(newY, -maxY), maxY);
+                    const touch = e.touches[0];
+                    swipeDeltaX = touch.pageX - swipeStartX;
+                    swipeDeltaY = touch.pageY - swipeStartY;
 
-                            state.zoom.posX = newX;
-                            state.zoom.posY = newY;
-
-                            applyZoom();
-                            e.preventDefault();
-                        }
+                    if (state.zoom.scale > 1) {
+                        const maxX = (img.offsetWidth * (state.zoom.scale - 1)) / 2;
+                        const maxY = (img.offsetHeight * (state.zoom.scale - 1)) / 2;
+                        state.zoom.posX = Math.min(Math.max(touch.pageX - state.zoom.startX, -maxX), maxX);
+                        state.zoom.posY = Math.min(Math.max(touch.pageY - state.zoom.startY, -maxY), maxY);
+                        applyZoom();
+                        e.preventDefault();
                     }
                 }, { passive: false });
 
-                container.addEventListener('touchend', (e) => {
-                    if (e.touches.length === 0) {
-                        // Handle swipe gesture for navigation (only when not zoomed)
-                        if (isSwiping && !isZooming && state.zoom.scale === 1) {
-                            const swipeEndX = e.changedTouches[0].pageX;
-                            const swipeDistance = swipeStartX - swipeEndX;
-
-                            // Only navigate if swipe is horizontal and significant
-                            if (Math.abs(swipeDistance) > 50) {
-                                if (swipeDistance > 0 && state.currentImageIndex < state.currentImages.length - 1) {
-                                    navigateImage(1);
-                                } else if (swipeDistance < 0 && state.currentImageIndex > 0) {
-                                    navigateImage(-1);
-                                }
-                                haptic('light');
-                            }
+                container.addEventListener('touchend', () => {
+                    if (isPinching) {
+                        isPinching = false;
+                    } else if (canSwipe && Math.abs(swipeDeltaY) < VERTICAL_TOLERANCE && Math.abs(swipeDeltaX) > SWIPE_THRESHOLD) {
+                        if (swipeDeltaX < 0 && state.currentImageIndex < state.currentImages.length - 1) {
+                            navigateImage(1);
+                        } else if (swipeDeltaX > 0 && state.currentImageIndex > 0) {
+                            navigateImage(-1);
                         }
+                    }
 
-                        state.zoom.isDragging = false;
-                        isZooming = false;
-                        isSwiping = false;
-
-                        if (state.zoom.scale === 1) {
-                            state.zoom.posX = 0;
-                            state.zoom.posY = 0;
-                            applyZoom();
-                        }
+                    state.zoom.isDragging = false;
+                    canSwipe = false;
+                    if (state.zoom.scale === 1) {
+                        state.zoom.posX = 0;
+                        state.zoom.posY = 0;
+                        applyZoom();
                     }
                 }, { passive: true });
 
@@ -2081,7 +1409,7 @@
                     if (state.zoom.scale > 1) {
                         resetZoom();
                     } else {
-                        state.zoom.scale = 2.5;
+                        state.zoom.scale = 2;
                         applyZoom();
                     }
                     haptic('medium');
