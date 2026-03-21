@@ -1,5 +1,5 @@
 {
   "routes": [
-    { "src": "/(.*)", "dest": "/PsterApp.html" }
+    { "src": "/(.*)", "dest": "/PosterApp.html" }
   ]
 }
