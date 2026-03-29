@@ -11,22 +11,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-    <!-- TGS / Lottie player — handles .tgs files natively -->
-    <script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.8/dist/lottie-player.js"></script>
+    <!-- pako (gzip decompress for .tgs) + bodymovin/lottie (render) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.10.2/lottie.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <style>
         /* ══════════════════════════════════════════════════
-           ★  EASY CONFIG — only edit values in this block  ★
+           ★  CONFIG — change TGS URLs and timing here only ★
         ══════════════════════════════════════════════════ */
-        :root {
-            /* Splash TGS animation  ↓ replace URL */
-            --tgs-splash: url("https://raw.githubusercontent.com/abhijeetpatil2122/Telegram-Gifts/main/Poster4s.tgs");
-            /* Header logo TGS       ↓ replace URL */
-            --tgs-logo:   url("https://raw.githubusercontent.com/abhijeetpatil2122/Telegram-Gifts/main/Poster4s.tgs");
-            /* Splash visible time   ↓ 4000–5000 ms */
-            --splash-ms: 4500;
-        }
+        /* JS CONFIG block below — search "★ CONFIG" in <script> */
 
         /* ── DESIGN TOKENS ─────────────────────────────── */
         :root {
@@ -57,7 +51,7 @@
             -webkit-font-smoothing:antialiased;
         }
 
-        /* Film grain overlay */
+        /* Film grain */
         body::before {
             content:''; position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:.55;
             background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
@@ -71,30 +65,32 @@
             background:var(--bg);
             display:flex; flex-direction:column;
             align-items:center; justify-content:center;
-            transition: opacity 0.65s ease, visibility 0.65s ease;
+            transition:opacity 0.65s ease, visibility 0.65s ease;
         }
         #splash.hide { opacity:0; visibility:hidden; }
 
-        /* Top gold line */
+        /* Top shimmer line */
         .splash-topline {
             position:absolute; top:0; left:0; right:0; height:2px;
-            background:linear-gradient(90deg,transparent 0%,var(--gold) 40%,var(--gold-light) 60%,transparent 100%);
+            background:linear-gradient(90deg,transparent,var(--gold) 40%,var(--gold-light) 60%,transparent);
             animation:lineGlow 2s ease-in-out infinite alternate;
         }
         @keyframes lineGlow { from{opacity:.4} to{opacity:1} }
 
-        /* Animation container */
+        /* Lottie container on splash */
         .splash-lottie-wrap {
             position:relative;
-            width:150px; height:150px;
+            width:160px; height:160px;
         }
-        .splash-lottie-wrap lottie-player {
+        /* The actual div lottie renders into */
+        #splash-lottie {
             width:100%; height:100%;
         }
 
-        /* Pulsing rings behind animation */
+        /* Pulsing rings */
         .splash-ring {
-            position:absolute; border-radius:50%; border:1px solid var(--gold); opacity:0;
+            position:absolute; border-radius:50%;
+            border:1px solid var(--gold); opacity:0; pointer-events:none;
         }
         .splash-ring.r1 { inset:-14px; animation:ringPulse 2.2s ease-out 0.8s infinite; }
         .splash-ring.r2 { inset:-28px; animation:ringPulse 2.2s ease-out 1.5s infinite; }
@@ -105,12 +101,11 @@
 
         /* Brand text */
         .splash-brand {
-            margin-top:30px;
+            margin-top:28px;
             display:flex; flex-direction:column; align-items:center; gap:7px;
             animation:splashUp .7s ease-out .35s both;
         }
         @keyframes splashUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
-
         .splash-name {
             font-family:'DM Serif Display', serif;
             font-size:30px; letter-spacing:.02em; color:var(--text); line-height:1;
@@ -120,19 +115,24 @@
             letter-spacing:.28em; text-transform:uppercase; color:var(--gold);
         }
 
-        /* Bottom progress bar */
-        .splash-bar {
-            position:absolute; bottom:0; left:0; right:0; height:2px;
-            background:var(--surface2); overflow:hidden;
-        }
+        /* Progress bar */
+        .splash-bar { position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--surface2); overflow:hidden; }
         .splash-bar-fill {
             height:100%;
-            background:linear-gradient(90deg, var(--gold), var(--gold-light));
+            background:linear-gradient(90deg,var(--gold),var(--gold-light));
             width:0%;
-            /* duration set via JS on the element's style */
-            animation:barFill linear both;
+            animation:barFill linear 0.1s both;
         }
         @keyframes barFill { from{width:0%} to{width:100%} }
+
+        /* Fallback: show if lottie fails to load */
+        .splash-fallback-icon {
+            display:none;
+            width:100%; height:100%;
+            align-items:center; justify-content:center;
+            font-size:72px;
+        }
+        .splash-fallback-icon.show { display:flex; }
 
         /* ════════════════════════════════════════════════
            APP SHELL
@@ -142,34 +142,42 @@
         /* ── HEADER ──────────────────────────────────── */
         .header {
             flex-shrink:0;
-            padding: max(env(safe-area-inset-top),10px) 18px 13px;
-            background:var(--bg);
-            border-bottom:1px solid var(--border);
+            padding:max(env(safe-area-inset-top),10px) 18px 13px;
+            background:var(--bg); border-bottom:1px solid var(--border);
             position:relative; z-index:10;
         }
         .header-row { display:flex; align-items:center; justify-content:space-between; }
 
-        /* Logo + text */
+        /* Logo area */
         .wordmark { display:flex; align-items:center; gap:10px; }
-        .logo-icon {
+        .logo-lottie-wrap {
             width:38px; height:38px; flex-shrink:0;
-            /* soft gold glow */
+            position:relative;
             filter:drop-shadow(0 0 7px rgba(201,168,76,.4));
         }
-        .logo-icon lottie-player { width:100%; height:100%; }
+        /* div lottie renders into */
+        #header-lottie {
+            width:100%; height:100%;
+        }
+        /* fallback emoji if lottie fails */
+        .logo-fallback {
+            display:none; position:absolute; inset:0;
+            align-items:center; justify-content:center;
+            font-size:24px;
+        }
+        .logo-fallback.show { display:flex; }
 
         .wm-text { display:flex; flex-direction:column; gap:1px; }
         .wm-name {
             font-family:'DM Serif Display',serif;
-            font-size:19px; letter-spacing:.03em;
-            color:var(--text); line-height:1;
+            font-size:19px; letter-spacing:.03em; color:var(--text); line-height:1;
         }
         .wm-sub {
             font-size:9px; font-weight:500;
             letter-spacing:.24em; text-transform:uppercase; color:var(--gold);
         }
 
-        /* Avatar */
+        /* Avatar / profile */
         .header-right { display:flex; align-items:center; gap:10px; position:relative; }
         .avatar-btn {
             width:36px; height:36px; border-radius:50%;
@@ -182,7 +190,6 @@
         .avatar-btn:active { transform:scale(.93); }
         .avatar-btn img { width:100%; height:100%; object-fit:cover; }
 
-        /* Profile panel */
         .profile-panel {
             position:absolute; top:calc(100% + 12px); right:0; width:270px;
             background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
@@ -193,7 +200,7 @@
         .profile-panel.open { opacity:1; transform:translateY(0) scale(1); visibility:visible; }
         .panel-user {
             padding:16px; border-bottom:1px solid var(--border-soft);
-            background:linear-gradient(135deg,var(--surface2) 0%,var(--surface) 100%);
+            background:linear-gradient(135deg,var(--surface2),var(--surface));
         }
         .panel-name { font-family:'DM Serif Display',serif; font-size:16px; color:var(--text); }
         .panel-id   { font-size:12px; color:var(--text-dim); margin-top:3px; font-variant-numeric:tabular-nums; }
@@ -230,20 +237,18 @@
             opacity:0; pointer-events:none; transition:opacity .2s,color .2s;
         }
         .clear-btn.show { opacity:1; pointer-events:auto; }
-        .clear-btn:hover { color:var(--text); }
         .go-btn {
             background:var(--gold); color:#000; border:none; border-radius:30px;
             padding:7px 14px; font-size:12px; font-weight:600;
             font-family:'DM Sans',sans-serif; cursor:pointer;
             letter-spacing:.04em; transition:background .2s,transform .15s;
         }
-        .go-btn:active  { transform:scale(.94); }
-        .go-btn:hover   { background:var(--gold-light); }
+        .go-btn:active { transform:scale(.94); }
+        .go-btn:hover  { background:var(--gold-light); }
 
         /* ── MAIN ────────────────────────────────────── */
         .main { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; padding-bottom:env(safe-area-inset-bottom); }
         .main::-webkit-scrollbar { display:none; }
-
         .section { display:none; }
         .section.active { display:block; animation:fadeUp .25s ease-out; }
         @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
@@ -251,7 +256,6 @@
         /* ── GRID ────────────────────────────────────── */
         .grid { padding:14px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
         @media(min-width:500px){ .grid { grid-template-columns:repeat(4,1fr); } }
-
         .card {
             cursor:pointer; border-radius:var(--radius-sm); overflow:hidden;
             background:var(--surface); border:1px solid var(--border-soft);
@@ -334,12 +338,10 @@
         .img-card.logo .img-wrap img { object-fit:contain; padding:12px; }
         .img-rank { position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,.65); backdrop-filter:blur(6px); border:1px solid var(--border); border-radius:6px; padding:3px 7px; font-size:10px; font-weight:700; color:var(--gold); letter-spacing:.04em; }
 
-        /* Gallery spinner */
         .g-loading { position:absolute; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:20; transition:opacity .3s; }
         .g-loading.hidden { opacity:0; pointer-events:none; }
         .spinner { width:36px; height:36px; border:2.5px solid var(--border-soft); border-top-color:var(--gold); border-radius:50%; animation:spin .75s linear infinite; }
         @keyframes spin { to{transform:rotate(360deg)} }
-
         .load-more { display:none; padding:20px; text-align:center; }
         .load-more .spinner { margin:0 auto; }
 
@@ -372,7 +374,7 @@
         .toast.success .toast-dot { background:var(--green); }
         .toast.error   .toast-dot { background:var(--red);   }
         .toast.info    .toast-dot { background:var(--gold);  }
-        .toast.warning .toast-dot { background:#f59e0b;       }
+        .toast.warning .toast-dot { background:#f59e0b;      }
 
         /* ── SCROLL TOP ──────────────────────────────── */
         .scroll-top { position:fixed; bottom:22px; right:18px; width:42px; height:42px; background:var(--gold); color:#000; border:none; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; transform:translateY(16px); transition:all .25s; z-index:998; box-shadow:0 4px 20px rgba(201,168,76,.3); }
@@ -391,14 +393,10 @@
     <div class="splash-lottie-wrap">
         <div class="splash-ring r1"></div>
         <div class="splash-ring r2"></div>
-        <lottie-player
-            id="splashPlayer"
-            src="https://raw.githubusercontent.com/abhijeetpatil2122/Telegram-Gifts/main/Poster4s.tgs"
-            background="transparent"
-            speed="1"
-            loop
-            autoplay>
-        </lottie-player>
+        <!-- lottie renders SVG into this div -->
+        <div id="splash-lottie"></div>
+        <!-- shown only if TGS fails -->
+        <div class="splash-fallback-icon" id="splash-fallback">🎬</div>
     </div>
 
     <div class="splash-brand">
@@ -447,17 +445,13 @@
     <header class="header">
         <div class="header-row">
 
-            <!-- ★ Animated logo in header -->
+            <!-- Animated logo -->
             <div class="wordmark">
-                <div class="logo-icon">
-                    <lottie-player
-                        id="logoPlayer"
-                        src="https://raw.githubusercontent.com/abhijeetpatil2122/Telegram-Gifts/main/Poster4s.tgs"
-                        background="transparent"
-                        speed="0.8"
-                        loop
-                        autoplay>
-                    </lottie-player>
+                <div class="logo-lottie-wrap">
+                    <!-- lottie renders here -->
+                    <div id="header-lottie"></div>
+                    <!-- fallback if TGS fails -->
+                    <div class="logo-fallback" id="logo-fallback">🎬</div>
                 </div>
                 <div class="wm-text">
                     <span class="wm-name">Paradox Poster</span>
@@ -531,11 +525,11 @@
     'use strict';
 
     /* ════════════════════════════════════════════════
-       ★  CONFIG — update your TGS URLs and timing here
+       ★ CONFIG — only change these 3 values
     ════════════════════════════════════════════════ */
     const TGS_SPLASH      = 'https://raw.githubusercontent.com/abhijeetpatil2122/Telegram-Gifts/main/Poster4s.tgs';
     const TGS_LOGO        = 'https://raw.githubusercontent.com/abhijeetpatil2122/Telegram-Gifts/main/Poster4s.tgs';
-    const SPLASH_DURATION = 4500; // milliseconds — change to 4000 or 5000 etc.
+    const SPLASH_DURATION = 4500; // ms — 4000 to 5000 recommended
 
     /* ── TMDB ─────────────────────────────────────── */
     const TMDB_KEY = 'f979d700e9d424a22b2d0d8dbbd932e0';
@@ -546,91 +540,146 @@
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.ready(); tg.expand(); tg.disableVerticalSwipes(); }
 
-    /* ── TGS SOURCES ──────────────────────────────── */
-    // Set via JS as well so swapping the JS constants above is sufficient
-    document.getElementById('splashPlayer').setAttribute('src', TGS_SPLASH);
-    document.getElementById('logoPlayer').setAttribute('src', TGS_LOGO);
+    /* ════════════════════════════════════════════════
+       TGS LOADER  (same technique as the cafe app)
+       1. fetch the .tgs URL
+       2. pako.inflate (gunzip) → JSON string
+       3. JSON.parse → animationData object
+       4. lottie.loadAnimation({ animationData, ... })
+    ════════════════════════════════════════════════ */
+    const tgsCache = new Map(); // url → animationData (avoid re-fetching)
 
-    /* ── SPLASH LOGIC ─────────────────────────────── */
+    async function loadTGS(url) {
+        if (tgsCache.has(url)) return tgsCache.get(url);
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`TGS fetch failed: ${res.status}`);
+        const buf  = await res.arrayBuffer();
+        const json = pako.inflate(new Uint8Array(buf), { to: 'string' });
+        const data = JSON.parse(json);
+        tgsCache.set(url, data);
+        return data;
+    }
+
+    /**
+     * Mount a looping lottie animation into `containerId`.
+     * Returns the lottie AnimationItem (or null on failure).
+     * Shows `fallbackId` element if loading fails.
+     */
+    async function mountTGS(url, containerId, fallbackId, { loop = true, speed = 1 } = {}) {
+        const container = document.getElementById(containerId);
+        if (!container) return null;
+        try {
+            const data = await loadTGS(url);
+            const anim = lottie.loadAnimation({
+                container,
+                renderer: 'svg',
+                loop,
+                autoplay: true,
+                animationData: data,
+                rendererSettings: { progressiveLoad: true, hideOnTransparent: true }
+            });
+            anim.setSpeed(speed);
+            return anim;
+        } catch (err) {
+            console.warn('TGS load failed:', url, err);
+            if (fallbackId) {
+                const fb = document.getElementById(fallbackId);
+                if (fb) fb.classList.add('show');
+            }
+            return null;
+        }
+    }
+
+    /* ════════════════════════════════════════════════
+       SPLASH LOGIC
+    ════════════════════════════════════════════════ */
     const splashEl  = document.getElementById('splash');
     const splashBar = document.getElementById('splashBar');
 
-    // Kick off progress bar animation with correct duration
+    // Start progress bar animation
     splashBar.style.animationDuration = SPLASH_DURATION + 'ms';
     splashBar.style.animationDelay    = '0ms';
 
-    let appReady   = false;
-    let timerDone  = false;
+    let appReady  = false;
+    let timerDone = false;
 
     function tryDismissSplash() {
         if (!appReady || !timerDone) return;
         splashEl.classList.add('hide');
         setTimeout(() => {
             splashEl.style.display = 'none';
-            // Free memory — stop the lottie playing off-screen
-            try { document.getElementById('splashPlayer').stop(); } catch(_) {}
+            // destroy splash lottie to free memory
+            if (window._splashAnim) { window._splashAnim.destroy(); window._splashAnim = null; }
         }, 700);
     }
 
+    // Timer — minimum display time
     setTimeout(() => { timerDone = true; tryDismissSplash(); }, SPLASH_DURATION);
+
+    // Load splash animation immediately (non-blocking)
+    mountTGS(TGS_SPLASH, 'splash-lottie', 'splash-fallback', { loop: true, speed: 1 })
+        .then(anim => { window._splashAnim = anim; });
+
+    // Load header logo animation (also non-blocking, fires in background)
+    mountTGS(TGS_LOGO, 'header-lottie', 'logo-fallback', { loop: true, speed: 0.8 });
 
     /* ── STATE ────────────────────────────────────── */
     const S = {
-        view:'search',
-        searchResults:[], discoverResults:[],
-        discoverPage:1, discoverHasMore:true,
-        isSearchMode:false,
+        view: 'search',
+        searchResults: [], discoverResults: [],
+        discoverPage: 1, discoverHasMore: true,
+        isSearchMode: false,
 
-        media:null,
-        gallery:{
-            backdrops:{ en:[], hi:[], mr:[], null:[] },
-            posters:  { en:[], hi:[], mr:[] },
-            logos:[]
+        media: null,
+        gallery: {
+            backdrops: { en:[], hi:[], mr:[], null:[] },
+            posters:   { en:[], hi:[], mr:[] },
+            logos: []
         },
-        activeTab:'backdrops', activeLang:'all',
-        allImages:[], shownImages:[], loadedCount:0, batchSize:20,
+        activeTab: 'backdrops', activeLang: 'all',
+        allImages: [], shownImages: [], loadedCount: 0, batchSize: 20,
 
-        lbIndex:0,
-        zoom:{ scale:1, x:0, y:0 },
-        loading:false, profileOpen:false, user:null,
-        backHandler:null,
+        lbIndex: 0,
+        zoom: { scale:1, x:0, y:0 },
+        loading: false, profileOpen: false, user: null,
+        backHandler: null,
     };
 
     /* ── ELS ──────────────────────────────────────── */
     const $ = id => document.getElementById(id);
     const E = {
-        searchField:$('searchField'), goBtn:$('goBtn'), clearBtn:$('clearBtn'),
-        searchWrap:$('searchWrap'), searchSection:$('searchSection'),
-        gallerySection:$('gallerySection'),
-        resultsGrid:$('resultsGrid'),
-        tabStrip:$('tabStrip'), langStrip:$('langStrip'),
-        imgGrid:$('imgGrid'),
-        loadMoreSearch:$('loadMoreSearch'), loadMoreGallery:$('loadMoreGallery'),
-        gLoading:$('gLoading'),
-        galleryTitle:$('galleryTitle'), galleryYear:$('galleryYear'),
-        toast:$('toast'), toastMsg:$('toastMsg'),
-        lightbox:$('lightbox'), lbImg:$('lbImg'), lbImgWrap:$('lbImgWrap'),
-        lbClose:$('lbClose'), lbPrev:$('lbPrev'), lbNext:$('lbNext'),
-        lbCounter:$('lbCounter'), lbCopy:$('lbCopy'), lbDownload:$('lbDownload'),
-        main:$('main'), scrollTop:$('scrollTop'),
-        avatarBtn:$('avatarBtn'), avatarInitial:$('avatarInitial'),
-        profilePanel:$('profilePanel'), panelName:$('panelName'), panelId:$('panelId'),
-        devLink:$('devLink'),
+        searchField: $('searchField'), goBtn: $('goBtn'), clearBtn: $('clearBtn'),
+        searchWrap: $('searchWrap'), searchSection: $('searchSection'),
+        gallerySection: $('gallerySection'),
+        resultsGrid: $('resultsGrid'),
+        tabStrip: $('tabStrip'), langStrip: $('langStrip'),
+        imgGrid: $('imgGrid'),
+        loadMoreSearch: $('loadMoreSearch'), loadMoreGallery: $('loadMoreGallery'),
+        gLoading: $('gLoading'),
+        galleryTitle: $('galleryTitle'), galleryYear: $('galleryYear'),
+        toast: $('toast'), toastMsg: $('toastMsg'),
+        lightbox: $('lightbox'), lbImg: $('lbImg'), lbImgWrap: $('lbImgWrap'),
+        lbClose: $('lbClose'), lbPrev: $('lbPrev'), lbNext: $('lbNext'),
+        lbCounter: $('lbCounter'), lbCopy: $('lbCopy'), lbDownload: $('lbDownload'),
+        main: $('main'), scrollTop: $('scrollTop'),
+        avatarBtn: $('avatarBtn'), avatarInitial: $('avatarInitial'),
+        profilePanel: $('profilePanel'), panelName: $('panelName'), panelId: $('panelId'),
+        devLink: $('devLink'),
     };
 
     /* ── HAPTIC ───────────────────────────────────── */
-    function hap(t='medium') {
+    function hap(t = 'medium') {
         try {
             if (!tg?.HapticFeedback) return;
             if (['success','error','warning'].includes(t)) tg.HapticFeedback.notificationOccurred(t);
-            else if (t==='selection') tg.HapticFeedback.selectionChanged();
+            else if (t === 'selection') tg.HapticFeedback.selectionChanged();
             else tg.HapticFeedback.impactOccurred(t);
-        } catch(_){}
+        } catch(_) {}
     }
 
     /* ── TOAST ────────────────────────────────────── */
     let toastTimer;
-    function toast(msg, type='info') {
+    function toast(msg, type = 'info') {
         E.toastMsg.textContent = msg;
         E.toast.className = `toast ${type}`;
         E.toast.classList.add('show');
@@ -657,7 +706,6 @@
     function initProfile() {
         const user = tg?.initDataUnsafe?.user;
         if (!user) return;
-        S.user = user;
         const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'User';
         E.panelName.textContent = name;
         E.panelId.textContent   = `ID: ${user.id}`;
@@ -667,21 +715,23 @@
             img.onload = () => {
                 E.avatarBtn.innerHTML = '';
                 const i = document.createElement('img');
-                i.src = user.photo_url; E.avatarBtn.appendChild(i);
+                i.src = user.photo_url;
+                E.avatarBtn.appendChild(i);
             };
             img.src = user.photo_url;
         }
     }
     function closeProfile() {
-        S.profileOpen = false; E.profilePanel.classList.remove('open');
+        S.profileOpen = false;
+        E.profilePanel.classList.remove('open');
     }
 
     /* ── DISCOVER ─────────────────────────────────── */
-    async function loadDiscover(page=1) {
+    async function loadDiscover(page = 1) {
         try {
             const r = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&include_adult=false&language=en-US&page=${page}&sort_by=popularity.desc`);
             const d = await r.json();
-            const items = (d.results||[]).filter(x => x.poster_path);
+            const items = (d.results || []).filter(x => x.poster_path);
             S.discoverHasMore = d.page < d.total_pages;
             return items;
         } catch(e) { return []; }
@@ -690,34 +740,35 @@
     /* ── SEARCH ───────────────────────────────────── */
     let searchDebounce;
     async function doSearch(q) {
-        if (!q.trim()) { S.isSearchMode=false; renderGrid(S.discoverResults,false); return; }
-        S.loading=true; S.isSearchMode=true; showSkeletons();
+        if (!q.trim()) { S.isSearchMode = false; renderGrid(S.discoverResults, false); return; }
+        S.loading = true; S.isSearchMode = true; showSkeletons();
         try {
             const yearM = q.match(/\(?(\d{4})\)?$/);
             const year  = yearM ? yearM[1] : null;
             const title = year ? q.replace(/\s*\(?\d{4}\)?$/, '').trim() : q;
             const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}${year ? '&year='+year : ''}&page=1`);
             const d = await r.json();
-            const items = (d.results||[]).filter(x => (x.media_type==='movie'||x.media_type==='tv') && x.poster_path);
-            if (!items.length) { showEmpty('No results found','Try a different title'); return; }
+            const items = (d.results || []).filter(x => (x.media_type === 'movie' || x.media_type === 'tv') && x.poster_path);
+            if (!items.length) { showEmpty('No results found', 'Try a different title'); return; }
             const ql = title.toLowerCase();
-            items.sort((a,b) => {
-                const at=(a.title||a.name||'').toLowerCase();
-                const bt=(b.title||b.name||'').toLowerCase();
-                if (at===ql && bt!==ql) return -1;
-                if (bt===ql && at!==ql) return 1;
-                return (b.popularity||0)-(a.popularity||0);
+            items.sort((a, b) => {
+                const at = (a.title||a.name||'').toLowerCase();
+                const bt = (b.title||b.name||'').toLowerCase();
+                if (at === ql && bt !== ql) return -1;
+                if (bt === ql && at !== ql) return 1;
+                return (b.popularity||0) - (a.popularity||0);
             });
-            S.searchResults=items; renderGrid(items,false);
-        } catch(e) { showEmpty('Search failed','Please try again'); }
-        finally { S.loading=false; }
+            S.searchResults = items;
+            renderGrid(items, false);
+        } catch(e) { showEmpty('Search failed', 'Please try again'); }
+        finally { S.loading = false; }
     }
 
     /* ── GRID ─────────────────────────────────────── */
-    function showSkeletons(n=9) {
-        E.resultsGrid.innerHTML='';
-        for (let i=0;i<n;i++) {
-            E.resultsGrid.innerHTML+=`
+    function showSkeletons(n = 9) {
+        E.resultsGrid.innerHTML = '';
+        for (let i = 0; i < n; i++) {
+            E.resultsGrid.innerHTML += `
                 <div class="card skel-card">
                     <div class="skel skel-poster"></div>
                     <div class="skel skel-line"></div>
@@ -725,161 +776,168 @@
                 </div>`;
         }
     }
-    function showEmpty(title,sub='') {
-        E.resultsGrid.innerHTML=`
+    function showEmpty(title, sub = '') {
+        E.resultsGrid.innerHTML = `
             <div style="grid-column:1/-1">
                 <div class="empty">
                     <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>
                     </svg>
                     <div class="empty-title">${title}</div>
-                    ${sub?`<div class="empty-sub">${sub}</div>`:''}
+                    ${sub ? `<div class="empty-sub">${sub}</div>` : ''}
                 </div>
             </div>`;
     }
-    function renderGrid(items, append=false) {
-        if (!append) E.resultsGrid.innerHTML='';
+    function renderGrid(items, append = false) {
+        if (!append) E.resultsGrid.innerHTML = '';
         if (!items.length && !append) { showEmpty('Nothing here yet'); return; }
         const frag = document.createDocumentFragment();
-        items.forEach((item,idx) => {
+        items.forEach((item, idx) => {
             const div = document.createElement('div');
-            div.className='card'; div.style.animationDelay=`${(idx%9)*30}ms`;
+            div.className = 'card';
+            div.style.animationDelay = `${(idx % 9) * 30}ms`;
             const poster = item.poster_path ? `${BASE_W}${item.poster_path}` : '';
-            const title  = item.title||item.name||'Unknown';
-            const year   = (item.release_date||item.first_air_date||'').slice(0,4);
-            const type   = item.media_type==='tv' ? 'TV' : 'Movie';
-            div.innerHTML=`
+            const title  = item.title || item.name || 'Unknown';
+            const year   = (item.release_date || item.first_air_date || '').slice(0,4);
+            const type   = item.media_type === 'tv' ? 'TV' : 'Movie';
+            div.innerHTML = `
                 <div class="card-poster">
-                    ${poster?`<img src="${poster}" alt="${title}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.style.display='none'">`:''}
-                    <span class="card-badge badge-${type==='Movie'?'movie':'tv'}">${type}</span>
+                    ${poster ? `<img src="${poster}" alt="${title}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.style.display='none'">` : ''}
+                    <span class="card-badge badge-${type === 'Movie' ? 'movie' : 'tv'}">${type}</span>
                 </div>
                 <div class="card-body">
                     <div class="card-title">${title}</div>
-                    <div class="card-year">${year||'—'}</div>
+                    <div class="card-year">${year || '—'}</div>
                 </div>`;
-            div.addEventListener('click', () => { hap('medium'); openGallery(item.media_type||'movie', item.id); });
+            div.addEventListener('click', () => { hap('medium'); openGallery(item.media_type || 'movie', item.id); });
             frag.appendChild(div);
         });
         E.resultsGrid.appendChild(frag);
     }
 
     /* ── GALLERY ──────────────────────────────────── */
-    function openGallery(type,id) {
-        S.view='gallery'; S.activeTab='backdrops'; S.activeLang='all'; closeProfile();
+    function openGallery(type, id) {
+        S.view = 'gallery'; S.activeTab = 'backdrops'; S.activeLang = 'all'; closeProfile();
         E.searchSection.classList.remove('active');
         E.searchWrap.classList.add('hidden');
         setTimeout(() => E.gallerySection.classList.add('active'), 40);
-        E.main.scrollTop=0;
+        E.main.scrollTop = 0;
         setBack(() => { hap('light'); goBack(); });
-        fetchImages(type,id);
+        fetchImages(type, id);
     }
     function goBack() {
-        if (S.view!=='gallery') return;
-        S.view='search'; closeProfile();
+        if (S.view !== 'gallery') return;
+        S.view = 'search'; closeProfile();
         E.gallerySection.classList.remove('active');
-        setTimeout(() => { E.searchSection.classList.add('active'); E.searchWrap.classList.remove('hidden'); }, 40);
-        E.main.scrollTop=0; clearBack();
+        setTimeout(() => {
+            E.searchSection.classList.add('active');
+            E.searchWrap.classList.remove('hidden');
+        }, 40);
+        E.main.scrollTop = 0; clearBack();
     }
 
     /* ── FETCH IMAGES ─────────────────────────────── */
-    async function fetchImages(type,id) {
-        S.loading=true; E.imgGrid.innerHTML='';
+    async function fetchImages(type, id) {
+        S.loading = true; E.imgGrid.innerHTML = '';
         E.gLoading.classList.remove('hidden');
-        E.loadMoreGallery.style.display='none';
-        const meta = [...S.searchResults,...S.discoverResults].find(x => x.id.toString()===id.toString()) || {};
-        E.galleryTitle.textContent = meta.title||meta.name||'…';
-        E.galleryYear.textContent  = (meta.release_date||meta.first_air_date||'').slice(0,4);
+        E.loadMoreGallery.style.display = 'none';
+        const meta = [...S.searchResults, ...S.discoverResults].find(x => x.id.toString() === id.toString()) || {};
+        E.galleryTitle.textContent = meta.title || meta.name || '…';
+        E.galleryYear.textContent  = (meta.release_date || meta.first_air_date || '').slice(0,4);
         try {
             const r = await fetch(`https://api.themoviedb.org/3/${type}/${id}/images?api_key=${TMDB_KEY}`);
             const d = await r.json();
-            S.gallery={
-                backdrops:{
-                    en:  (d.backdrops||[]).filter(x=>x.iso_639_1==='en'),
-                    hi:  (d.backdrops||[]).filter(x=>x.iso_639_1==='hi'),
-                    mr:  (d.backdrops||[]).filter(x=>x.iso_639_1==='mr'),
-                    null:(d.backdrops||[]).filter(x=>!x.iso_639_1),
+            S.gallery = {
+                backdrops: {
+                    en:   (d.backdrops||[]).filter(x => x.iso_639_1 === 'en'),
+                    hi:   (d.backdrops||[]).filter(x => x.iso_639_1 === 'hi'),
+                    mr:   (d.backdrops||[]).filter(x => x.iso_639_1 === 'mr'),
+                    null: (d.backdrops||[]).filter(x => !x.iso_639_1),
                 },
-                posters:{
-                    en:(d.posters||[]).filter(x=>x.iso_639_1==='en'),
-                    hi:(d.posters||[]).filter(x=>x.iso_639_1==='hi'),
-                    mr:(d.posters||[]).filter(x=>x.iso_639_1==='mr'),
+                posters: {
+                    en: (d.posters||[]).filter(x => x.iso_639_1 === 'en'),
+                    hi: (d.posters||[]).filter(x => x.iso_639_1 === 'hi'),
+                    mr: (d.posters||[]).filter(x => x.iso_639_1 === 'mr'),
                 },
-                logos:(d.logos||[]).filter(x=>x.file_path?.endsWith('.png'))
+                logos: (d.logos||[]).filter(x => x.file_path?.endsWith('.png'))
             };
-            S.media={ type, id, title:meta.title||meta.name||'Image' };
-            setTimeout(() => { E.gLoading.classList.add('hidden'); buildTabs(); renderImages(); }, 150);
+            S.media = { type, id, title: meta.title || meta.name || 'Image' };
+            setTimeout(() => {
+                E.gLoading.classList.add('hidden');
+                buildTabs(); renderImages();
+            }, 150);
         } catch(e) {
-            E.gLoading.classList.add('hidden'); toast('Failed to load images','error');
-            E.imgGrid.innerHTML=`<div style="grid-column:1/-1"><div class="empty"><div class="empty-title">Load failed</div></div></div>`;
-        } finally { S.loading=false; }
+            E.gLoading.classList.add('hidden'); toast('Failed to load images', 'error');
+            E.imgGrid.innerHTML = `<div style="grid-column:1/-1"><div class="empty"><div class="empty-title">Load failed</div></div></div>`;
+        } finally { S.loading = false; }
     }
 
     /* ── TABS ─────────────────────────────────────── */
     function countTab(t) {
-        if (t==='backdrops') return Object.values(S.gallery.backdrops).reduce((s,a)=>s+a.length,0);
-        if (t==='posters')   return Object.values(S.gallery.posters).reduce((s,a)=>s+a.length,0);
+        if (t === 'backdrops') return Object.values(S.gallery.backdrops).reduce((s,a) => s+a.length, 0);
+        if (t === 'posters')   return Object.values(S.gallery.posters).reduce((s,a) => s+a.length, 0);
         return S.gallery.logos.length;
     }
     function buildTabs() {
-        const tabs=[{id:'backdrops',label:'Landscape'},{id:'posters',label:'Posters'},{id:'logos',label:'Logos'}];
-        E.tabStrip.innerHTML='';
+        const tabs = [{id:'backdrops',label:'Landscape'},{id:'posters',label:'Posters'},{id:'logos',label:'Logos'}];
+        E.tabStrip.innerHTML = '';
         tabs.forEach(t => {
-            const b=document.createElement('button');
-            b.className=`tab ${S.activeTab===t.id?'active':''}`;
-            b.dataset.tab=t.id;
-            b.innerHTML=`<span>${t.label}</span><span class="tab-count">${countTab(t.id)}</span>`;
-            b.addEventListener('click',()=>{ hap('selection'); switchTab(t.id); });
+            const b = document.createElement('button');
+            b.className = `tab ${S.activeTab === t.id ? 'active' : ''}`;
+            b.dataset.tab = t.id;
+            b.innerHTML = `<span>${t.label}</span><span class="tab-count">${countTab(t.id)}</span>`;
+            b.addEventListener('click', () => { hap('selection'); switchTab(t.id); });
             E.tabStrip.appendChild(b);
         });
         buildLangs();
     }
     function switchTab(id) {
-        S.activeTab=id; S.activeLang='all'; S.loadedCount=0; S.allImages=[]; S.shownImages=[];
-        document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
-        const go=()=>{ buildLangs(); renderImages(); };
-        if (E.main.scrollTop>120) { E.main.scrollTo({top:0,behavior:'smooth'}); setTimeout(go,280); } else go();
+        S.activeTab = id; S.activeLang = 'all'; S.loadedCount = 0; S.allImages = []; S.shownImages = [];
+        document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+        const go = () => { buildLangs(); renderImages(); };
+        if (E.main.scrollTop > 120) { E.main.scrollTo({top:0,behavior:'smooth'}); setTimeout(go, 280); } else go();
     }
 
     /* ── LANGS ────────────────────────────────────── */
     function buildLangs() {
-        if (S.activeTab==='logos') { E.langStrip.classList.add('hidden'); return; }
-        const data=S.activeTab==='backdrops' ? S.gallery.backdrops : S.gallery.posters;
-        const total=Object.values(data).reduce((s,a)=>s+a.length,0);
-        const langs=[
-            {id:'all', label:`🌐 All (${total})`},
-            {id:'en',  label:`🇺🇸 EN (${data.en.length})`},
-            {id:'hi',  label:`🇮🇳 HI (${(data.hi||[]).length})`},
-            {id:'mr',  label:`🇮🇳 MR (${(data.mr||[]).length})`},
+        if (S.activeTab === 'logos') { E.langStrip.classList.add('hidden'); return; }
+        const data = S.activeTab === 'backdrops' ? S.gallery.backdrops : S.gallery.posters;
+        const total = Object.values(data).reduce((s,a) => s+a.length, 0);
+        const langs = [
+            {id:'all',  label:`🌐 All (${total})`},
+            {id:'en',   label:`🇺🇸 EN (${data.en.length})`},
+            {id:'hi',   label:`🇮🇳 HI (${(data.hi||[]).length})`},
+            {id:'mr',   label:`🇮🇳 MR (${(data.mr||[]).length})`},
         ];
-        if (S.activeTab==='backdrops') langs.push({id:'null', label:`✨ Clean (${data.null.length})`});
-        E.langStrip.classList.remove('hidden'); E.langStrip.innerHTML='';
+        if (S.activeTab === 'backdrops') langs.push({id:'null', label:`✨ Clean (${data.null.length})`});
+        E.langStrip.classList.remove('hidden'); E.langStrip.innerHTML = '';
         langs.forEach(l => {
-            const b=document.createElement('button');
-            b.className=`lang ${S.activeLang===l.id?'active':''}`;
-            b.dataset.lang=l.id; b.textContent=l.label;
-            b.addEventListener('click',()=>{ hap('selection'); switchLang(l.id); });
+            const b = document.createElement('button');
+            b.className = `lang ${S.activeLang === l.id ? 'active' : ''}`;
+            b.dataset.lang = l.id; b.textContent = l.label;
+            b.addEventListener('click', () => { hap('selection'); switchLang(l.id); });
             E.langStrip.appendChild(b);
         });
     }
     function switchLang(id) {
-        S.activeLang=id; S.loadedCount=0; S.allImages=[]; S.shownImages=[];
-        document.querySelectorAll('.lang').forEach(b=>b.classList.toggle('active',b.dataset.lang===id));
-        const go=renderImages;
-        if (E.main.scrollTop>120) { E.main.scrollTo({top:0,behavior:'smooth'}); setTimeout(go,280); } else go();
+        S.activeLang = id; S.loadedCount = 0; S.allImages = []; S.shownImages = [];
+        document.querySelectorAll('.lang').forEach(b => b.classList.toggle('active', b.dataset.lang === id));
+        const go = renderImages;
+        if (E.main.scrollTop > 120) { E.main.scrollTo({top:0,behavior:'smooth'}); setTimeout(go, 280); } else go();
     }
 
     /* ── RENDER IMAGES ────────────────────────────── */
     function getImageList() {
-        if (S.activeTab==='logos') return S.gallery.logos;
-        const data=S.activeTab==='backdrops' ? S.gallery.backdrops : S.gallery.posters;
-        if (S.activeLang==='all') { const all=[]; Object.values(data).forEach(a=>all.push(...a)); return all; }
-        return data[S.activeLang]||[];
+        if (S.activeTab === 'logos') return S.gallery.logos;
+        const data = S.activeTab === 'backdrops' ? S.gallery.backdrops : S.gallery.posters;
+        if (S.activeLang === 'all') { const all = []; Object.values(data).forEach(a => all.push(...a)); return all; }
+        return data[S.activeLang] || [];
     }
-    function renderImages(more=false) {
-        if (!more) { E.imgGrid.innerHTML=''; S.allImages=getImageList(); S.shownImages=[]; S.loadedCount=0; }
-        const images=S.allImages;
+    function renderImages(more = false) {
+        if (!more) { E.imgGrid.innerHTML = ''; S.allImages = getImageList(); S.shownImages = []; S.loadedCount = 0; }
+        const images = S.allImages;
         if (!images.length) {
-            E.imgGrid.innerHTML=`
+            E.imgGrid.innerHTML = `
                 <div style="grid-column:1/-1">
                     <div class="empty">
                         <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -889,218 +947,234 @@
                         <div class="empty-sub">Try another category or language</div>
                     </div>
                 </div>`;
-            E.loadMoreGallery.style.display='none'; return;
+            E.loadMoreGallery.style.display = 'none'; return;
         }
-        const start=S.loadedCount;
-        const end=Math.min(start+S.batchSize, images.length);
-        const batch=images.slice(start,end);
-        if (!batch.length) { E.loadMoreGallery.style.display='none'; return; }
-        const frag=document.createDocumentFragment();
-        batch.forEach((img,i) => {
-            const idx=start+i;
+        const start = S.loadedCount;
+        const end   = Math.min(start + S.batchSize, images.length);
+        const batch = images.slice(start, end);
+        if (!batch.length) { E.loadMoreGallery.style.display = 'none'; return; }
+        const frag = document.createDocumentFragment();
+        batch.forEach((img, i) => {
+            const idx = start + i;
             S.shownImages.push(`${BASE_ORI}${img.file_path}`);
-            const card=document.createElement('div');
-            const type=S.activeTab==='backdrops'?'backdrop':S.activeTab==='posters'?'poster':'logo';
-            card.className=`img-card ${type}`; card.style.animationDelay=`${(i%10)*25}ms`; card.dataset.idx=idx;
-            const vote=img.vote_average ? `★ ${img.vote_average.toFixed(1)}` : '';
-            card.innerHTML=`
+            const card = document.createElement('div');
+            const type = S.activeTab === 'backdrops' ? 'backdrop' : S.activeTab === 'posters' ? 'poster' : 'logo';
+            card.className = `img-card ${type}`;
+            card.style.animationDelay = `${(i % 10) * 25}ms`;
+            card.dataset.idx = idx;
+            const vote = img.vote_average ? `★ ${img.vote_average.toFixed(1)}` : '';
+            card.innerHTML = `
                 <div class="img-wrap">
                     <img src="${BASE_W}${img.file_path}" alt="Image ${idx+1}" loading="lazy"
                          onload="this.classList.add('loaded')" onerror="this.style.display='none'">
-                    ${vote?`<div class="img-rank">${vote}</div>`:''}
+                    ${vote ? `<div class="img-rank">${vote}</div>` : ''}
                 </div>`;
-            card.addEventListener('click',()=>{ hap('medium'); openLightbox(idx); });
+            card.addEventListener('click', () => { hap('medium'); openLightbox(idx); });
             frag.appendChild(card);
         });
         E.imgGrid.appendChild(frag);
-        S.loadedCount=end;
-        E.loadMoreGallery.style.display=end<images.length?'block':'none';
+        S.loadedCount = end;
+        E.loadMoreGallery.style.display = end < images.length ? 'block' : 'none';
     }
 
     /* ── LIGHTBOX ─────────────────────────────────── */
     function openLightbox(idx) {
-        S.lbIndex=idx; resetZoom(); setLbImage();
+        S.lbIndex = idx; resetZoom(); setLbImage();
         E.lightbox.classList.add('open');
-        setBack(()=>{ hap('light'); closeLightbox(); });
+        setBack(() => { hap('light'); closeLightbox(); });
     }
     function setLbImage() {
-        const url=S.shownImages[S.lbIndex]; if (url) E.lbImg.src=url;
-        E.lbCounter.textContent=`${S.lbIndex+1} / ${S.shownImages.length}`;
-        E.lbPrev.disabled=S.lbIndex===0;
-        E.lbNext.disabled=S.lbIndex===S.shownImages.length-1;
+        const url = S.shownImages[S.lbIndex]; if (url) E.lbImg.src = url;
+        E.lbCounter.textContent = `${S.lbIndex + 1} / ${S.shownImages.length}`;
+        E.lbPrev.disabled = S.lbIndex === 0;
+        E.lbNext.disabled = S.lbIndex === S.shownImages.length - 1;
     }
     function closeLightbox() {
-        E.lightbox.classList.remove('open'); E.lbImg.src=''; resetZoom();
-        if (S.view==='gallery') setBack(()=>{ hap('light'); goBack(); });
+        E.lightbox.classList.remove('open'); E.lbImg.src = ''; resetZoom();
+        if (S.view === 'gallery') setBack(() => { hap('light'); goBack(); });
     }
     function navLb(dir) {
-        const ni=S.lbIndex+dir;
-        if (ni<0||ni>=S.shownImages.length) return;
-        S.lbIndex=ni; resetZoom(); setLbImage(); hap('light');
+        const ni = S.lbIndex + dir;
+        if (ni < 0 || ni >= S.shownImages.length) return;
+        S.lbIndex = ni; resetZoom(); setLbImage(); hap('light');
     }
 
     /* ── ZOOM ─────────────────────────────────────── */
-    function resetZoom() { S.zoom={scale:1,x:0,y:0}; applyZoom(); }
-    function applyZoom() { E.lbImg.style.transform=`translate(${S.zoom.x}px,${S.zoom.y}px) scale(${S.zoom.scale})`; }
+    function resetZoom() { S.zoom = {scale:1, x:0, y:0}; applyZoom(); }
+    function applyZoom() {
+        E.lbImg.style.transform = `translate(${S.zoom.x}px,${S.zoom.y}px) scale(${S.zoom.scale})`;
+    }
 
     /* ── TOUCH (lightbox) ─────────────────────────── */
     (function() {
-        const w=E.lbImgWrap;
-        let t1,t2,initDist,initScale,sx,sy,dragging=false,zooming=false;
-        w.addEventListener('touchstart',e=>{
-            if (e.touches.length===2) {
-                zooming=true; dragging=false;
-                t1=e.touches[0]; t2=e.touches[1];
-                initDist=Math.hypot(t2.pageX-t1.pageX,t2.pageY-t1.pageY);
-                initScale=S.zoom.scale; e.preventDefault();
+        const w = E.lbImgWrap;
+        let t1, t2, initDist, initScale, sx, sy, dragging = false, zooming = false;
+        w.addEventListener('touchstart', e => {
+            if (e.touches.length === 2) {
+                zooming = true; dragging = false;
+                t1 = e.touches[0]; t2 = e.touches[1];
+                initDist  = Math.hypot(t2.pageX-t1.pageX, t2.pageY-t1.pageY);
+                initScale = S.zoom.scale;
+                e.preventDefault();
             } else {
-                sx=e.touches[0].pageX; sy=e.touches[0].pageY;
-                if (S.zoom.scale>1) dragging=true;
-                zooming=false;
+                sx = e.touches[0].pageX; sy = e.touches[0].pageY;
+                if (S.zoom.scale > 1) dragging = true;
+                zooming = false;
             }
-        },{passive:false});
-        w.addEventListener('touchmove',e=>{
-            if (e.touches.length===2 && zooming) {
-                t1=e.touches[0]; t2=e.touches[1];
-                const d=Math.hypot(t2.pageX-t1.pageX,t2.pageY-t1.pageY);
-                S.zoom.scale=Math.min(4,Math.max(1,initScale*(d/initDist)));
-                if (S.zoom.scale===1){S.zoom.x=0;S.zoom.y=0;}
+        }, {passive:false});
+        w.addEventListener('touchmove', e => {
+            if (e.touches.length === 2 && zooming) {
+                t1 = e.touches[0]; t2 = e.touches[1];
+                const d = Math.hypot(t2.pageX-t1.pageX, t2.pageY-t1.pageY);
+                S.zoom.scale = Math.min(4, Math.max(1, initScale*(d/initDist)));
+                if (S.zoom.scale === 1) { S.zoom.x = 0; S.zoom.y = 0; }
                 applyZoom(); e.preventDefault();
-            } else if (e.touches.length===1 && dragging && S.zoom.scale>1) {
-                const dx=e.touches[0].pageX-sx, dy=e.touches[0].pageY-sy;
-                const mx=(E.lbImg.offsetWidth*(S.zoom.scale-1))/2;
-                const my=(E.lbImg.offsetHeight*(S.zoom.scale-1))/2;
-                S.zoom.x=Math.max(-mx,Math.min(mx,S.zoom.x+dx));
-                S.zoom.y=Math.max(-my,Math.min(my,S.zoom.y+dy));
-                sx=e.touches[0].pageX; sy=e.touches[0].pageY;
+            } else if (e.touches.length === 1 && dragging && S.zoom.scale > 1) {
+                const dx = e.touches[0].pageX - sx, dy = e.touches[0].pageY - sy;
+                const mx = (E.lbImg.offsetWidth  * (S.zoom.scale-1)) / 2;
+                const my = (E.lbImg.offsetHeight * (S.zoom.scale-1)) / 2;
+                S.zoom.x = Math.max(-mx, Math.min(mx, S.zoom.x + dx));
+                S.zoom.y = Math.max(-my, Math.min(my, S.zoom.y + dy));
+                sx = e.touches[0].pageX; sy = e.touches[0].pageY;
                 applyZoom(); e.preventDefault();
             }
-        },{passive:false});
-        w.addEventListener('touchend',e=>{
-            if (e.touches.length===0) {
-                if (!dragging&&!zooming&&S.zoom.scale===1) {
-                    const dist=sx-e.changedTouches[0].pageX;
-                    if (Math.abs(dist)>50) navLb(dist>0?1:-1);
+        }, {passive:false});
+        w.addEventListener('touchend', e => {
+            if (e.touches.length === 0) {
+                if (!dragging && !zooming && S.zoom.scale === 1) {
+                    const dist = sx - e.changedTouches[0].pageX;
+                    if (Math.abs(dist) > 50) navLb(dist > 0 ? 1 : -1);
                 }
-                dragging=false; zooming=false;
-                if (S.zoom.scale===1){S.zoom.x=0;S.zoom.y=0;applyZoom();}
+                dragging = false; zooming = false;
+                if (S.zoom.scale === 1) { S.zoom.x = 0; S.zoom.y = 0; applyZoom(); }
             }
-        },{passive:true});
-        E.lbImg.addEventListener('dblclick',()=>{
-            if (S.zoom.scale>1) resetZoom();
-            else {S.zoom.scale=2.5;applyZoom();}
+        }, {passive:true});
+        E.lbImg.addEventListener('dblclick', () => {
+            if (S.zoom.scale > 1) resetZoom();
+            else { S.zoom.scale = 2.5; applyZoom(); }
             hap('medium');
         });
     })();
 
     /* ── DOWNLOAD / COPY ──────────────────────────── */
     async function downloadImg() {
-        const url=S.shownImages[S.lbIndex];
+        const url = S.shownImages[S.lbIndex];
         try {
             if (tg?.downloadFile) {
-                const name=`${(S.media?.title||'image').replace(/[^a-z0-9]/gi,'_')}_${S.lbIndex+1}.jpg`;
-                tg.downloadFile({url,file_name:name},ok=>toast(ok?'Download started':'Cancelled',ok?'success':'warning'));
+                const name = `${(S.media?.title||'image').replace(/[^a-z0-9]/gi,'_')}_${S.lbIndex+1}.jpg`;
+                tg.downloadFile({url, file_name:name}, ok => toast(ok ? 'Download started' : 'Cancelled', ok ? 'success' : 'warning'));
             } else {
-                const res=await fetch(url); const blob=await res.blob();
-                const burl=URL.createObjectURL(blob);
-                const a=document.createElement('a');
-                a.href=burl; a.download=`paradox-poster-${Date.now()}.jpg`;
+                const res = await fetch(url); const blob = await res.blob();
+                const burl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = burl; a.download = `paradox-poster-${Date.now()}.jpg`;
                 document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                URL.revokeObjectURL(burl); toast('Downloaded!','success');
+                URL.revokeObjectURL(burl); toast('Downloaded!', 'success');
             }
-        } catch(e){ toast('Download failed','error'); }
+        } catch(e) { toast('Download failed', 'error'); }
     }
     function copyLink() {
-        const url=S.shownImages[S.lbIndex];
-        if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(()=>toast('Link copied','success')).catch(()=>fallbackCopy(url));
-        else fallbackCopy(url);
+        const url = S.shownImages[S.lbIndex];
+        if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(url).then(() => toast('Link copied', 'success')).catch(() => fallbackCopy(url));
+        } else fallbackCopy(url);
     }
     function fallbackCopy(url) {
-        const inp=document.createElement('input'); inp.value=url;
+        const inp = document.createElement('input'); inp.value = url;
         document.body.appendChild(inp); inp.select();
         document.execCommand('copy'); document.body.removeChild(inp);
-        toast('Link copied','success');
+        toast('Link copied', 'success');
     }
 
     /* ── EVENTS ───────────────────────────────────── */
     function bindEvents() {
-        E.goBtn.addEventListener('click',()=>{ hap('medium'); doSearch(E.searchField.value.trim()); });
-        E.searchField.addEventListener('keypress',e=>{ if(e.key==='Enter'){hap('medium');doSearch(E.searchField.value.trim());} });
-        E.searchField.addEventListener('input',e=>{
-            const v=e.target.value;
-            E.clearBtn.classList.toggle('show',!!v);
+        E.goBtn.addEventListener('click', () => { hap('medium'); doSearch(E.searchField.value.trim()); });
+        E.searchField.addEventListener('keypress', e => {
+            if (e.key === 'Enter') { hap('medium'); doSearch(E.searchField.value.trim()); }
+        });
+        E.searchField.addEventListener('input', e => {
+            const v = e.target.value;
+            E.clearBtn.classList.toggle('show', !!v);
             clearTimeout(searchDebounce);
-            if(!v){S.isSearchMode=false;renderGrid(S.discoverResults,false);return;}
-            searchDebounce=setTimeout(()=>doSearch(v),480);
+            if (!v) { S.isSearchMode = false; renderGrid(S.discoverResults, false); return; }
+            searchDebounce = setTimeout(() => doSearch(v), 480);
         });
-        E.clearBtn.addEventListener('click',()=>{
-            hap('light'); E.searchField.value='';
+        E.clearBtn.addEventListener('click', () => {
+            hap('light'); E.searchField.value = '';
             E.clearBtn.classList.remove('show');
-            S.isSearchMode=false; renderGrid(S.discoverResults,false);
+            S.isSearchMode = false; renderGrid(S.discoverResults, false);
         });
-        E.lbClose.addEventListener('click',()=>{hap('light');closeLightbox();});
-        E.lbPrev.addEventListener('click',()=>navLb(-1));
-        E.lbNext.addEventListener('click',()=>navLb(1));
-        E.lbCopy.addEventListener('click',()=>{hap('medium');copyLink();});
-        E.lbDownload.addEventListener('click',()=>{hap('medium');downloadImg();});
-        E.lightbox.addEventListener('click',e=>{if(e.target===E.lightbox){hap('light');closeLightbox();}});
-        document.addEventListener('keydown',e=>{
-            if(!E.lightbox.classList.contains('open')) return;
-            if(e.key==='Escape') closeLightbox();
-            else if(e.key==='ArrowLeft') navLb(-1);
-            else if(e.key==='ArrowRight') navLb(1);
-        });
-        E.avatarBtn.addEventListener('click',e=>{
-            e.stopPropagation(); hap('light');
-            S.profileOpen=!S.profileOpen;
-            E.profilePanel.classList.toggle('open',S.profileOpen);
-        });
-        document.addEventListener('click',e=>{
-            if(S.profileOpen&&!E.avatarBtn.contains(e.target)&&!E.profilePanel.contains(e.target)) closeProfile();
-        });
-        E.devLink.addEventListener('click',()=>{hap('medium');toast('Opening Telegram…','info');closeProfile();});
 
-        E.main.addEventListener('scroll',()=>{
-            E.scrollTop.classList.toggle('show', E.main.scrollTop>300);
-            const st=E.main.scrollTop, sh=E.main.scrollHeight, ch=E.main.clientHeight;
-            if (sh-st-ch<350) {
-                if (S.view==='search'&&!S.isSearchMode&&!S.loading&&S.discoverHasMore) {
-                    S.loading=true; E.loadMoreSearch.style.display='block'; S.discoverPage++;
-                    loadDiscover(S.discoverPage).then(items=>{
-                        if(items.length){S.discoverResults.push(...items);renderGrid(items,true);}
-                        S.loading=false; E.loadMoreSearch.style.display='none';
+        E.lbClose.addEventListener('click',    () => { hap('light'); closeLightbox(); });
+        E.lbPrev.addEventListener('click',     () => navLb(-1));
+        E.lbNext.addEventListener('click',     () => navLb(1));
+        E.lbCopy.addEventListener('click',     () => { hap('medium'); copyLink(); });
+        E.lbDownload.addEventListener('click', () => { hap('medium'); downloadImg(); });
+        E.lightbox.addEventListener('click', e => {
+            if (e.target === E.lightbox) { hap('light'); closeLightbox(); }
+        });
+        document.addEventListener('keydown', e => {
+            if (!E.lightbox.classList.contains('open')) return;
+            if (e.key === 'Escape') closeLightbox();
+            else if (e.key === 'ArrowLeft') navLb(-1);
+            else if (e.key === 'ArrowRight') navLb(1);
+        });
+
+        E.avatarBtn.addEventListener('click', e => {
+            e.stopPropagation(); hap('light');
+            S.profileOpen = !S.profileOpen;
+            E.profilePanel.classList.toggle('open', S.profileOpen);
+        });
+        document.addEventListener('click', e => {
+            if (S.profileOpen && !E.avatarBtn.contains(e.target) && !E.profilePanel.contains(e.target)) closeProfile();
+        });
+        E.devLink.addEventListener('click', () => { hap('medium'); toast('Opening Telegram…', 'info'); closeProfile(); });
+
+        E.main.addEventListener('scroll', () => {
+            E.scrollTop.classList.toggle('show', E.main.scrollTop > 300);
+            const st = E.main.scrollTop, sh = E.main.scrollHeight, ch = E.main.clientHeight;
+            if (sh - st - ch < 350) {
+                if (S.view === 'search' && !S.isSearchMode && !S.loading && S.discoverHasMore) {
+                    S.loading = true; E.loadMoreSearch.style.display = 'block'; S.discoverPage++;
+                    loadDiscover(S.discoverPage).then(items => {
+                        if (items.length) { S.discoverResults.push(...items); renderGrid(items, true); }
+                        S.loading = false; E.loadMoreSearch.style.display = 'none';
                     });
-                } else if (S.view==='gallery'&&S.loadedCount<S.allImages.length) {
+                } else if (S.view === 'gallery' && S.loadedCount < S.allImages.length) {
                     renderImages(true);
                 }
             }
         });
-        E.scrollTop.addEventListener('click',()=>{hap('light');E.main.scrollTo({top:0,behavior:'smooth'});});
+        E.scrollTop.addEventListener('click', () => { hap('light'); E.main.scrollTo({top:0, behavior:'smooth'}); });
     }
 
     /* ── INIT ─────────────────────────────────────── */
     async function init() {
-        initProfile(); bindEvents(); showSkeletons(9);
+        initProfile();
+        bindEvents();
+        showSkeletons(9);
+
         const items = await loadDiscover(1);
         S.discoverResults = items;
-        if (items.length) renderGrid(items,false);
-        else showEmpty('Couldn\'t load movies','Check your connection');
+        if (items.length) renderGrid(items, false);
+        else showEmpty('Couldn\'t load movies', 'Check your connection');
 
-        // App is ready — if timer already done, splash hides now; otherwise waits for timer
+        // App data is ready — splash hides if timer also done, else waits
         appReady = true;
         tryDismissSplash();
 
         if (tg?.initDataUnsafe?.start_param) {
-            const sp=tg.initDataUnsafe.start_param;
+            const sp = tg.initDataUnsafe.start_param;
             if (sp.startsWith('search_')) {
-                const q=decodeURIComponent(sp.replace('search_','').replace(/_/g,' '));
-                E.searchField.value=q; E.clearBtn.classList.add('show');
-                setTimeout(()=>doSearch(q),600);
+                const q = decodeURIComponent(sp.replace('search_', '').replace(/_/g, ' '));
+                E.searchField.value = q;
+                E.clearBtn.classList.add('show');
+                setTimeout(() => doSearch(q), 600);
             }
         }
     }
 
-    if (document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
 
 })();
