@@ -1,66 +1,98 @@
-# Telegram Mini App: Multi-Channel Verification (Demo)
+# Telegram Mini App — Production Membership Verification
 
-This demo Mini App verifies whether a Telegram user has joined **all required channels**.
+This app verifies that a user has joined all required Telegram channels before continuing.
 
-It supports:
-- ✅ public channels (via `@username`)
-- ✅ private channels (via numeric `chatId` + private invite `joinUrl`)
+## Production behavior
 
-## How it works
+- Frontend sends only `initData` to backend.
+- Backend verifies Telegram signature (`initData` HMAC with bot token).
+- Backend extracts `user.id` from verified `initData`.
+- Backend checks membership in all configured channels via `getChatMember`.
+- Frontend shows per-channel status and join buttons for missing channels.
+- When all checks pass, Mini App auto-closes.
 
-1. Mini App opens inside Telegram.
-2. Frontend sends `initData`, `userId`, and optional channel list to `/api/check-membership`.
-3. Backend validates Telegram `initData` signature with `BOT_TOKEN`.
-4. Backend calls `getChatMember` for each configured channel.
-5. Frontend renders per-channel results:
-   - if not joined, user gets Join button(s),
-   - when all are joined, app confirms and auto-closes.
+---
 
-## Environment variables (Vercel)
+## 1) Required env vars
 
-Required:
-- `BOT_TOKEN` = bot token from BotFather
+Set these in Vercel Project → Settings → Environment Variables:
 
-Choose one channel config mode:
+### Required
+- `BOT_TOKEN` = your bot token from BotFather
 
-### Preferred: multiple channels via JSON
+### Channel config (preferred)
+- `REQUIRED_CHANNELS_JSON` = **single-line valid JSON array**
 
-- `REQUIRED_CHANNELS_JSON` = JSON array, e.g.
+Use this exact format (replace with your real values):
 
 ```json
-[
-  {
-    "chatId": "@my_public_channel",
-    "title": "Public Announcements",
-    "joinUrl": "https://t.me/my_public_channel"
-  },
-  {
-    "chatId": "-1001234567890",
-    "title": "Private VIP Channel",
-    "joinUrl": "https://t.me/+AbCdEfGhIj"
-  }
-]
+[{"chatId":"@ParadoxBackup","title":"Paradox Backup","joinUrl":"https://t.me/ParadoxBackup"},{"chatId":"-1002475920740","title":"Watchlist","joinUrl":"https://t.me/+DmZhi9KqjN81MGJl"}]
 ```
 
-### Backward-compatible single channel
+> Important: in Vercel, use one-line JSON for env vars to avoid formatting mistakes.
 
-- `REQUIRED_CHANNEL` (chat id or `@username`)
-- `REQUIRED_CHANNEL_TITLE` (optional)
-- `REQUIRED_CHANNEL_JOIN_URL` (optional, useful for private)
+### Optional
+- `MAX_AUTH_AGE_SECONDS` (default `86400`)
 
-## Bot/channel requirements
+---
 
-- The bot must be present in each target channel.
-- The bot needs permissions that allow `getChatMember` checks.
+## 2) Public + private channel rules
 
-## Frontend fallback
+### Public channel
+- `chatId`: `@channel_username`
+- `joinUrl`: `https://t.me/channel_username`
 
-`PosterApp.html` includes `FALLBACK_CHANNELS` for quick testing. In production, prefer env-based configuration from backend.
+### Private channel
+- `chatId`: numeric chat ID (usually like `-100...`)
+- `joinUrl`: private invite link (`https://t.me/+...`)
 
-## Local run
+---
 
-```bash
-vercel dev
+## 3) Critical Telegram permissions checklist
+
+For each required channel:
+
+1. Add your bot to channel.
+2. Promote bot to admin (recommended).
+3. Ensure bot can inspect members (`getChatMember` must work).
+
+If this is not configured, backend will return per-channel errors and users will never pass verification.
+
+---
+
+## 4) BotFather Mini App setup
+
+- Set your Mini App URL to your Vercel deployment URL.
+- Open app from bot chat button/menu (not direct browser tab), so Telegram provides valid `initData`.
+
+---
+
+## 5) API response shape
+
+`POST /api/check-membership` with body:
+
+```json
+{"initData":"..."}
 ```
 
-Open only from Telegram Mini App context for real user verification.
+Response:
+
+```json
+{
+  "ok": true,
+  "allJoined": false,
+  "joined": false,
+  "userId": 123456789,
+  "channels": [
+    {
+      "channelId": "@ParadoxBackup",
+      "chatId": "@ParadoxBackup",
+      "title": "Paradox Backup",
+      "joinUrl": "https://t.me/ParadoxBackup",
+      "joined": true,
+      "status": "member",
+      "error": null
+    }
+  ]
+}
+```

@@ -7,339 +7,228 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --tg-bg: var(--tg-theme-bg-color, #0b1020);
-      --tg-text: var(--tg-theme-text-color, #eff6ff);
-      --tg-hint: var(--tg-theme-hint-color, #93a4bf);
-      --tg-link: var(--tg-theme-link-color, #60a5fa);
-      --tg-button: var(--tg-theme-button-color, #2563eb);
-      --tg-button-text: var(--tg-theme-button-text-color, #ffffff);
+      --bg: var(--tg-theme-bg-color, #0b1020);
+      --text: var(--tg-theme-text-color, #eff6ff);
+      --hint: var(--tg-theme-hint-color, #93a4bf);
+      --btn: var(--tg-theme-button-color, #2563eb);
+      --btn-text: var(--tg-theme-button-text-color, #ffffff);
+      --card: rgba(15, 23, 42, 0.76);
+      --border: rgba(148, 163, 184, 0.26);
       --ok: #22c55e;
       --warn: #f59e0b;
-      --danger: #ef4444;
-      --card: rgba(15, 23, 42, 0.72);
-      --card-soft: rgba(255, 255, 255, 0.05);
-      --border: rgba(148, 163, 184, 0.25);
-      --shadow: 0 22px 48px rgba(0, 0, 0, 0.45);
-      --radius: 18px;
+      --err: #ef4444;
     }
 
     * { box-sizing: border-box; }
 
-    html, body {
+    body {
       margin: 0;
-      min-height: 100%;
-      color: var(--tg-text);
+      min-height: 100vh;
+      color: var(--text);
       background:
-        radial-gradient(1200px 700px at -10% -10%, rgba(59, 130, 246, 0.18), transparent 60%),
-        radial-gradient(900px 600px at 110% 0%, rgba(16, 185, 129, 0.12), transparent 60%),
-        var(--tg-bg);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
+        radial-gradient(1300px 700px at -20% -10%, rgba(59,130,246,.20), transparent 65%),
+        radial-gradient(900px 600px at 120% -10%, rgba(16,185,129,.15), transparent 60%),
+        var(--bg);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom));
     }
 
-    .app {
-      max-width: 520px;
-      margin: 0 auto;
-      display: grid;
-      gap: 14px;
-    }
+    .wrap { max-width: 520px; margin: 0 auto; display: grid; gap: 14px; }
 
-    .hero {
-      border-radius: calc(var(--radius) + 2px);
+    .hero,
+    .panel {
       border: 1px solid var(--border);
-      background: linear-gradient(145deg, rgba(30, 64, 175, 0.36), rgba(15, 23, 42, 0.82));
-      box-shadow: var(--shadow);
-      padding: 18px;
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: 0 20px 45px rgba(0,0,0,.35);
     }
 
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
+    .hero { padding: 18px; }
+    .chip {
+      display: inline-block;
       border-radius: 999px;
       padding: 6px 10px;
-      background: rgba(59, 130, 246, 0.2);
-      color: #bfdbfe;
       font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
+      font-weight: 700;
+      color: #bfdbfe;
+      background: rgba(59,130,246,.22);
     }
 
-    h1 {
-      margin: 12px 0 6px;
-      font-size: 24px;
-      line-height: 1.25;
-    }
+    h1 { margin: 12px 0 6px; font-size: 24px; }
+    #subtitle { margin: 0; color: var(--hint); line-height: 1.5; font-size: 14px; }
 
-    .sub {
-      margin: 0;
-      color: var(--tg-hint);
-      line-height: 1.55;
-      font-size: 14px;
-    }
-
-    .panel {
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: var(--card);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-
-    .status {
+    #status {
       padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
       font-size: 13px;
-      line-height: 1.4;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(15, 23, 42, 0.45);
-      color: var(--tg-hint);
+      color: var(--hint);
     }
 
-    .status.ok { color: #bbf7d0; border-left: 3px solid rgba(34, 197, 94, 0.8); }
-    .status.warn { color: #fde68a; border-left: 3px solid rgba(245, 158, 11, 0.8); }
-    .status.error { color: #fecaca; border-left: 3px solid rgba(239, 68, 68, 0.8); }
+    #status.ok { border-left: 3px solid var(--ok); color: #bbf7d0; }
+    #status.warn { border-left: 3px solid var(--warn); color: #fde68a; }
+    #status.error { border-left: 3px solid var(--err); color: #fecaca; }
 
-    .list {
-      display: grid;
-      gap: 10px;
+    #list { display: grid; gap: 10px; padding: 12px; }
+
+    .item {
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
       padding: 12px;
-    }
-
-    .channel {
       display: grid;
       grid-template-columns: 1fr auto;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: var(--card-soft);
-      padding: 12px;
     }
 
-    .meta {
-      display: grid;
-      gap: 4px;
-      min-width: 0;
-    }
-
-    .title {
-      font-size: 15px;
-      font-weight: 700;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    .title { font-size: 15px; font-weight: 700; }
+    .meta { display: grid; gap: 4px; }
 
     .badge {
-      display: inline-flex;
-      align-items: center;
+      display: inline-block;
       width: fit-content;
-      font-size: 11px;
-      letter-spacing: 0.02em;
-      font-weight: 700;
       border-radius: 999px;
       padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
     }
 
     .badge.ok { color: #052e16; background: #86efac; }
     .badge.warn { color: #78350f; background: #fcd34d; }
     .badge.error { color: #7f1d1d; background: #fca5a5; }
 
-    .actions {
-      display: inline-flex;
-      gap: 8px;
-    }
-
     .btn {
-      appearance: none;
       border: none;
       border-radius: 10px;
+      padding: 10px 12px;
       font-size: 12px;
       font-weight: 700;
       cursor: pointer;
-      padding: 9px 12px;
-      white-space: nowrap;
-    }
-
-    .btn.primary {
-      color: var(--tg-button-text);
-      background: linear-gradient(135deg, var(--tg-button), #1d4ed8);
+      color: var(--btn-text);
+      background: linear-gradient(135deg, var(--btn), #1d4ed8);
     }
 
     .btn.secondary {
-      color: var(--tg-text);
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      background: rgba(255,255,255,.02);
+      border: 1px solid rgba(255,255,255,.18);
     }
 
     .hint {
-      color: var(--tg-hint);
+      color: var(--hint);
       font-size: 12px;
+      line-height: 1.45;
       padding: 0 14px 14px;
-      line-height: 1.5;
     }
-
-    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <main class="app">
+  <main class="wrap">
     <section class="hero">
-      <span class="eyebrow">🔐 Secure access check</span>
-      <h1>Channel membership verification</h1>
-      <p class="sub" id="subtitle">We are validating all required channels before granting access.</p>
+      <span class="chip">🔐 Secure verification</span>
+      <h1>Verify channel access</h1>
+      <p id="subtitle">Checking all required channels before access is granted.</p>
     </section>
 
     <section class="panel">
-      <div id="status" class="status warn">Initializing Telegram Mini App…</div>
-      <div id="channels" class="list"></div>
-      <div class="hint">Support for public and private channels: each required channel can use either username, numeric chat ID, or private invite link.</div>
+      <div id="status" class="warn">Initializing Telegram Mini App…</div>
+      <div id="list"></div>
+      <p class="hint">Private + public channels are supported. If a private channel is required, use numeric <code>chatId</code> and provide <code>joinUrl</code> in backend config.</p>
     </section>
 
-    <button id="recheckBtn" class="btn primary">Re-check membership</button>
+    <button id="recheck" class="btn">Re-check membership</button>
   </main>
 
   <script>
     const tg = window.Telegram?.WebApp;
-    const AUTO_CLOSE_MS = 1800;
-
-    // Optional fallback channels for local/manual testing.
-    // In production prefer server env REQUIRED_CHANNELS_JSON.
-    const FALLBACK_CHANNELS = [
-      {
-        chatId: '@your_public_channel',
-        title: 'Public Channel',
-        joinUrl: 'https://t.me/your_public_channel'
-      },
-      {
-        chatId: '-1001234567890',
-        title: 'Private Channel',
-        joinUrl: 'https://t.me/+replace_with_private_invite'
-      }
-    ];
-
     const statusEl = document.getElementById('status');
+    const listEl = document.getElementById('list');
     const subtitleEl = document.getElementById('subtitle');
-    const channelsEl = document.getElementById('channels');
-    const recheckBtn = document.getElementById('recheckBtn');
+    const recheckBtn = document.getElementById('recheck');
 
     function setStatus(kind, text) {
-      statusEl.className = `status ${kind}`;
+      statusEl.className = kind;
       statusEl.textContent = text;
     }
 
-    function resolveBadge(channel) {
-      if (channel.joined) {
-        return { text: 'Joined', cls: 'ok' };
-      }
-      if (channel.error) {
-        return { text: 'Error', cls: 'error' };
-      }
-      return { text: 'Not joined', cls: 'warn' };
+    function badge(channel) {
+      if (channel.joined) return { cls: 'ok', text: 'Joined' };
+      if (channel.error) return { cls: 'error', text: 'Error' };
+      return { cls: 'warn', text: 'Not joined' };
     }
 
-    function renderChannels(channels) {
-      channelsEl.innerHTML = '';
+    function render(channels) {
+      listEl.innerHTML = '';
 
       channels.forEach((channel) => {
-        const badge = resolveBadge(channel);
-        const card = document.createElement('article');
-        card.className = 'channel';
+        const b = badge(channel);
+        const item = document.createElement('article');
+        item.className = 'item';
 
         const meta = document.createElement('div');
         meta.className = 'meta';
         meta.innerHTML = `
-          <div class="title">${channel.title}</div>
-          <span class="badge ${badge.cls}">${badge.text}</span>
+          <div class="title">${channel.title || channel.channelId}</div>
+          <span class="badge ${b.cls}">${b.text}</span>
         `;
 
         const actions = document.createElement('div');
-        actions.className = 'actions';
-
         if (!channel.joined && channel.joinUrl) {
-          const joinBtn = document.createElement('button');
-          joinBtn.className = 'btn secondary';
-          joinBtn.textContent = 'Join';
-          joinBtn.onclick = () => tg?.openTelegramLink(channel.joinUrl);
-          actions.appendChild(joinBtn);
+          const join = document.createElement('button');
+          join.className = 'btn secondary';
+          join.textContent = 'Join';
+          join.onclick = () => tg?.openTelegramLink(channel.joinUrl);
+          actions.appendChild(join);
         }
 
-        card.append(meta, actions);
-        channelsEl.appendChild(card);
+        item.append(meta, actions);
+        listEl.appendChild(item);
       });
     }
 
-    function mapChannelsForUi(payload) {
-      if (Array.isArray(payload?.channels) && payload.channels.length) {
-        return payload.channels;
-      }
-      if (typeof payload?.joined === 'boolean') {
-        return [{
-          title: 'Required channel',
-          joined: payload.joined,
-          joinUrl: null
-        }];
-      }
-      return [];
-    }
-
-    async function checkMembership() {
+    async function check() {
       try {
-        setStatus('warn', 'Checking your memberships…');
-        subtitleEl.textContent = 'Please wait while we validate required channels.';
+        setStatus('warn', 'Checking memberships…');
+        subtitleEl.textContent = 'Please wait while your channel memberships are verified.';
         recheckBtn.disabled = true;
 
         const initData = tg?.initData;
-        const userId = tg?.initDataUnsafe?.user?.id;
-
-        if (!initData || !userId) {
-          throw new Error('Open this mini app from Telegram so we can verify your account.');
+        if (!initData) {
+          throw new Error('Open this app from Telegram. initData is missing.');
         }
 
-        const response = await fetch('/api/check-membership', {
+        const res = await fetch('/api/check-membership', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            initData,
-            userId,
-            channels: FALLBACK_CHANNELS
-          })
+          body: JSON.stringify({ initData })
         });
 
-        const payload = await response.json();
-
-        if (!response.ok) {
-          throw new Error(payload.error || 'Verification request failed.');
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || 'Verification failed.');
         }
 
-        const channels = mapChannelsForUi(payload);
-        renderChannels(channels);
+        render(data.channels || []);
 
-        const allJoined = Boolean(payload.allJoined ?? payload.joined);
-
-        if (allJoined) {
+        if (data.allJoined) {
           setStatus('ok', '✅ All channels verified. Closing mini app…');
-          subtitleEl.textContent = 'Access confirmed. You can return to the bot.';
+          subtitleEl.textContent = 'Verification complete. Returning to bot.';
           tg?.HapticFeedback?.notificationOccurred('success');
-
           tg?.MainButton?.setText('Verified ✅');
           tg?.MainButton?.show();
           tg?.MainButton?.disable();
-
-          setTimeout(() => tg?.close(), AUTO_CLOSE_MS);
+          setTimeout(() => tg?.close(), 1600);
           return;
         }
 
-        setStatus('warn', 'Join missing channels, then tap Re-check membership.');
-        subtitleEl.textContent = 'Public and private channel links are both supported.';
+        setStatus('warn', 'Join all missing channels, then tap re-check.');
+        subtitleEl.textContent = 'After joining, come back here and verify again.';
         tg?.MainButton?.setText('Re-check membership');
         tg?.MainButton?.show();
         tg?.MainButton?.enable();
-      } catch (error) {
-        setStatus('error', `❌ ${error.message}`);
-        subtitleEl.textContent = 'Please review channel config or bot permissions, then retry.';
+      } catch (err) {
+        setStatus('error', `❌ ${err.message}`);
+        subtitleEl.textContent = 'Check backend env config and bot permissions, then retry.';
         tg?.MainButton?.setText('Retry');
         tg?.MainButton?.show();
         tg?.MainButton?.enable();
@@ -348,28 +237,21 @@
       }
     }
 
-    function initTelegramUi() {
+    function init() {
       if (!tg) {
-        setStatus('error', 'Telegram WebApp SDK not found.');
-        subtitleEl.textContent = 'This page must be opened via Telegram mini app button.';
-        recheckBtn.onclick = () => window.location.reload();
+        setStatus('error', 'Telegram SDK not found. Open via Telegram Mini App.');
+        recheckBtn.onclick = () => location.reload();
         return;
       }
 
       tg.ready();
       tg.expand();
-
-      tg.MainButton?.setParams({
-        color: '#2563eb',
-        text_color: '#ffffff',
-        is_visible: true
-      });
-      tg.MainButton?.onClick(checkMembership);
-      recheckBtn.onclick = checkMembership;
-      checkMembership();
+      tg.MainButton?.onClick(check);
+      recheckBtn.onclick = check;
+      check();
     }
 
-    initTelegramUi();
+    init();
   </script>
 </body>
 </html>
