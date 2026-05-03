@@ -2,36 +2,45 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ReqLab - API Tester</title>
+<title>ReqLab</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
+:root {
+  --bg: var(--tg-theme-bg-color, #0f172a);
+  --text: var(--tg-theme-text-color, #e5e7eb);
+  --hint: var(--tg-theme-hint-color, #94a3b8);
+  --button: var(--tg-theme-button-color, #3390ec);
+  --button-text: var(--tg-theme-button-text-color, #fff);
+  --secondary: #020617;
+  --border: #334155;
+}
+
 body {
   margin: 0;
+  background: var(--bg);
+  color: var(--text);
   font-family: monospace;
-  background: #0f172a;
-  color: #e5e7eb;
 }
 
 .container {
-  padding: 15px;
+  padding: 12px;
 }
 
-h2 {
-  margin-bottom: 10px;
+.row {
+  display: flex;
+  gap: 8px;
 }
 
-.input, select, textarea {
+select, input, textarea {
   width: 100%;
   padding: 10px;
-  margin-top: 8px;
-  margin-bottom: 12px;
-  border-radius: 6px;
-  border: 1px solid #334155;
-  background: #020617;
-  color: #e5e7eb;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--secondary);
+  color: var(--text);
   font-family: monospace;
 }
 
@@ -39,40 +48,52 @@ textarea {
   height: 120px;
 }
 
-button {
-  padding: 10px;
-  border: 0;
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.tab {
+  padding: 6px 10px;
   border-radius: 6px;
+  background: var(--secondary);
   cursor: pointer;
-  margin-right: 5px;
 }
 
-.send {
-  background: #22c55e;
-  color: #000;
+.tab.active {
+  background: var(--button);
+  color: var(--button-text);
 }
 
-.template {
-  background: #334155;
-  color: #fff;
-  margin-top: 5px;
+.box {
+  margin-top: 10px;
 }
 
 .response {
-  margin-top: 15px;
-  background: #020617;
-  border: 1px solid #334155;
+  margin-top: 12px;
   padding: 10px;
-  border-radius: 6px;
+  background: var(--secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border);
   max-height: 300px;
   overflow: auto;
   white-space: pre-wrap;
 }
 
-.copy {
-  background: #16a34a;
-  color: #fff;
-  margin-top: 10px;
+.topbar {
+  display: flex;
+  gap: 8px;
+}
+
+.method {
+  width: 90px;
+}
+
+.status {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--hint);
 }
 </style>
 </head>
@@ -81,92 +102,147 @@ button {
 
 <div class="container">
 
-<h2>🧪 ReqLab</h2>
+<h3>🧪 ReqLab</h3>
 
-<label>Method</label>
-<select id="method">
-  <option value="GET">GET</option>
-  <option value="POST">POST</option>
-</select>
+<div class="topbar">
+  <select id="method" class="method">
+    <option>GET</option>
+    <option>POST</option>
+  </select>
 
-<label>API URL</label>
-<input class="input" id="url" placeholder="https://api.example.com">
-
-<label>JSON Body (POST)</label>
-<textarea id="body">{}</textarea>
-
-<button class="send" onclick="sendRequest()">🚀 Send Request</button>
-
-<h3>⚡ Telegram Templates</h3>
-
-<button class="template" onclick="tplGetMe()">getMe</button>
-<button class="template" onclick="tplSendMsg()">sendMessage</button>
-
-<div class="response" id="responseBox">
-Response will appear here...
+  <input id="url" placeholder="Enter request URL">
 </div>
 
-<button class="copy" onclick="copyResponse()">📋 Copy Response</button>
+<div class="tabs">
+  <div class="tab active" onclick="setTab('body')">Body</div>
+  <div class="tab" onclick="setTab('headers')">Headers</div>
+</div>
+
+<div id="bodyTab" class="box">
+  <textarea id="body">{}</textarea>
+</div>
+
+<div id="headersTab" class="box" style="display:none;">
+  <textarea id="headers">{}</textarea>
+</div>
+
+<h4>⚡ Telegram</h4>
+
+<div class="row">
+  <button onclick="tplGetMe()">getMe</button>
+  <button onclick="tplSendMsg()">sendMessage</button>
+</div>
+
+<div class="status" id="status">Idle</div>
+
+<div class="response" id="response">
+Response will appear here...
+</div>
 
 </div>
 
 <script>
 
 const tg = window.Telegram.WebApp;
+tg.ready();
 tg.expand();
 
-let lastResponse = "";
+// ===== MAIN BUTTON =====
+tg.MainButton.setText("🚀 Send Request");
+tg.MainButton.show();
+tg.MainButton.onClick(sendRequest);
 
-// ---------- SEND REQUEST ----------
+// ===== STATE =====
+let activeTab = "body";
+
+// ===== TAB SWITCH =====
+function setTab(tab) {
+  activeTab = tab;
+
+  document.getElementById("bodyTab").style.display =
+    tab === "body" ? "block" : "none";
+
+  document.getElementById("headersTab").style.display =
+    tab === "headers" ? "block" : "none";
+
+  let tabs = document.querySelectorAll(".tab");
+  tabs.forEach(t => t.classList.remove("active"));
+  event.target.classList.add("active");
+}
+
+// ===== REQUEST =====
 function sendRequest() {
+
+  tg.HapticFeedback.impactOccurred("medium");
 
   let method = document.getElementById("method").value;
   let url = document.getElementById("url").value;
-  let bodyText = document.getElementById("body").value;
 
-  let box = document.getElementById("responseBox");
-  box.innerText = "⏳ Loading...";
+  let bodyText = document.getElementById("body").value;
+  let headersText = document.getElementById("headers").value;
+
+  let resBox = document.getElementById("response");
+  let status = document.getElementById("status");
+
+  status.innerText = "⏳ Sending...";
+  resBox.innerText = "";
+
+  let start = Date.now();
 
   let options = {
     method: method,
-    headers: { "Content-Type": "application/json" }
+    headers: {}
   };
 
+  // HEADERS
+  try {
+    options.headers = JSON.parse(headersText || "{}");
+  } catch {
+    resBox.innerText = "❌ Invalid Headers JSON";
+    return;
+  }
+
+  // BODY
   if (method === "POST") {
     try {
+      JSON.parse(bodyText);
       options.body = bodyText;
-    } catch (e) {
-      box.innerText = "❌ Invalid JSON";
+      options.headers["Content-Type"] = "application/json";
+    } catch {
+      resBox.innerText = "❌ Invalid Body JSON";
       return;
     }
   }
 
   fetch(url, options)
-    .then(res => res.text())
-    .then(text => {
-      try {
-        let json = JSON.parse(text);
-        lastResponse = JSON.stringify(json, null, 2);
-      } catch {
-        lastResponse = text;
-      }
+    .then(async res => {
+      let time = Date.now() - start;
 
-      box.innerText = lastResponse;
+      let text = await res.text();
+
+      try {
+        text = JSON.stringify(JSON.parse(text), null, 2);
+      } catch {}
+
+      resBox.innerText = text;
+
+      status.innerText =
+        "✅ " + res.status + " | " + time + "ms";
+
+      tg.HapticFeedback.notificationOccurred("success");
     })
     .catch(err => {
-      box.innerText = "❌ Error: " + err;
+      resBox.innerText = err.toString();
+      status.innerText = "❌ Error";
+      tg.HapticFeedback.notificationOccurred("error");
     });
 }
 
-// ---------- COPY ----------
-function copyResponse() {
-  navigator.clipboard.writeText(lastResponse);
-  alert("Copied!");
-}
+// ===== TELEGRAM TEMPLATES =====
 
-// ---------- TEMPLATES ----------
+// getMe
 function tplGetMe() {
-  let token = prompt("Enter Bot Token:");
+  let token = prompt("Bot Token:");
   if (!token) return;
 
   document.getElementById("method").value = "GET";
@@ -174,9 +250,12 @@ function tplGetMe() {
     "https://api.telegram.org/bot" + token + "/getMe";
 }
 
+// sendMessage
 function tplSendMsg() {
-  let token = prompt("Enter Bot Token:");
+  let token = prompt("Bot Token:");
   if (!token) return;
+
+  let chatId = tg.initDataUnsafe?.user?.id || "";
 
   document.getElementById("method").value = "POST";
   document.getElementById("url").value =
@@ -184,8 +263,8 @@ function tplSendMsg() {
 
   document.getElementById("body").value =
 `{
-  "chat_id": "",
-  "text": "Hello from ReqLab"
+  "chat_id": "${chatId}",
+  "text": "Hello from ReqLab 🚀"
 }`;
 }
 
