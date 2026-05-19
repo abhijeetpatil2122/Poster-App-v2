@@ -1,188 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Telegram Mini App</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/twallpaper@latest/dist/twallpaper.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html, body {
-            height: 100%;
-            overflow: hidden;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            color: var(--tg-theme-text-color, #ffffff);
-        }
-        #wallpaper-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-        }
-        .content {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-            text-align: center;
-        }
-        h1 {
-            font-size: 32px;
-            margin-bottom: 16px;
-            font-weight: 700;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
-        }
-        p {
-            font-size: 18px;
-            opacity: 0.9;
-            margin-bottom: 30px;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.3);
-        }
-        .btn {
-            background: rgba(255, 255, 255, 0.25);
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            padding: 16px 32px;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        .btn:active {
-            transform: scale(0.95);
-        }
-        .card {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 24px;
-            margin-top: 24px;
-            max-width: 320px;
-            width: 100%;
-            display: none;
-        }
-        .card.show {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .card-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.15);
-            font-size: 14px;
-        }
-        .card-item:last-child {
-            border-bottom: none;
-        }
-        .label {
-            opacity: 0.7;
-        }
-        .value {
-            font-weight: 600;
-        }
-    </style>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
+
+  <title>Telegram TWallpaper</title>
+
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- TWallpaper CSS -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/twallpaper@latest/dist/cdn/style.css"
+  />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: sans-serif;
+    }
+
+    #wallpaper {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .content {
+      position: relative;
+      z-index: 10;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      font-weight: 700;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+  </style>
 </head>
+
 <body>
-    <div id="wallpaper-container"></div>
 
-    <div class="content">
-        <h1>Telegram Mini App</h1>
-        <p>TWallpaper with patterns - no blur</p>
-        <button class="btn" onclick="showInfo()">Show My Info</button>
-        
-        <div class="card" id="infoCard">
-            <div class="card-item">
-                <span class="label">Name</span>
-                <span class="value" id="userName">-</span>
-            </div>
-            <div class="card-item">
-                <span class="label">Username</span>
-                <span class="value" id="userUsername">-</span>
-            </div>
-            <div class="card-item">
-                <span class="label">ID</span>
-                <span class="value" id="userId">-</span>
-            </div>
-            <div class="card-item">
-                <span class="label">Language</span>
-                <span class="value" id="userLang">-</span>
-            </div>
-        </div>
-    </div>
+  <div id="wallpaper"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/twallpaper@latest/dist/index.umd.js"></script>
-    <script>
-        // Initialize Telegram Web App
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+  <div class="content">
+    Telegram Mini App
+  </div>
 
-        // Initialize TWallpaper with pattern (NO BLUR)
-        const wallpaper = new window.TWallpaper.default(
-            document.getElementById('wallpaper-container'),
-            {
-                colors: [
-                    '#0088cc',
-                    '#179cde',
-                    '#2ca5e0',
-                    '#33a4dd'
-                ],
-                fps: 60,
-                tails: 90,
-                animate: true,
-                pattern: {
-                    image: 'https://cdn.jsdelivr.net/npm/twallpaper@latest/assets/patterns/pattern-1.svg',
-                    mask: true,
-                    size: 'auto',
-                    opacity: 0.5
-                }
-            }
-        );
-        wallpaper.init();
+  <!-- TWallpaper -->
+  <script src="https://cdn.jsdelivr.net/npm/twallpaper@latest/dist/index.umd.js"></script>
 
-        // Show user info
-        function showInfo() {
-            const user = tg.initDataUnsafe?.user;
-            const card = document.getElementById('infoCard');
-            
-            if (user) {
-                document.getElementById('userName').textContent = 
-                    (user.first_name || '') + ' ' + (user.last_name || '');
-                document.getElementById('userUsername').textContent = 
-                    '@' + (user.username || 'N/A');
-                document.getElementById('userId').textContent = user.id;
-                document.getElementById('userLang').textContent = 
-                    user.language_code || 'N/A';
-            } else {
-                document.getElementById('userName').textContent = 'Guest';
-                document.getElementById('userUsername').textContent = '@guest';
-                document.getElementById('userId').textContent = '0';
-                document.getElementById('userLang').textContent = 'en';
-            }
-            
-            card.classList.toggle('show');
-            tg.HapticFeedback?.impactOccurred('light');
+  <script>
+    // Telegram Mini App
+    const tg = window.Telegram.WebApp;
+
+    tg.ready();
+    tg.expand();
+
+    // Theme colors from Telegram
+    const bg =
+      tg.themeParams.bg_color || "#0f172a";
+
+    // Wallpaper
+    const container =
+      document.getElementById("wallpaper");
+
+    const wallpaper =
+      new window.TWallpaper(container, {
+        colors: [
+          "#229ED9",
+          "#4C8BF5",
+          "#7B61FF",
+          "#00C2FF"
+        ],
+
+        animate: true,
+        fps: 60,
+        tails: 100,
+
+        pattern: {
+          image:
+            "https://twallpaper.js.org/patterns/topography.svg",
+
+          opacity: 0.2,
+          background: bg,
+          blur: 2,
+          size: "cover"
         }
-    </script>
+      });
+
+    wallpaper.init();
+  </script>
+
 </body>
 </html>
