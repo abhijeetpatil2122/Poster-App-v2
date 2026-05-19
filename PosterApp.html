@@ -8,7 +8,7 @@
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
   />
 
-  <title>Telegram TWallpaper</title>
+  <title>TWallpaper CDN Test</title>
 
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -24,6 +24,7 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     html,
@@ -35,37 +36,58 @@
       font-family: sans-serif;
     }
 
-    #wallpaper {
+    #app {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
     }
 
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(
+          to bottom,
+          rgba(0,0,0,0.2),
+          rgba(0,0,0,0.45)
+        );
+      z-index: 1;
+    }
+
     .content {
       position: relative;
-      z-index: 10;
+      z-index: 2;
+
       height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
+
       color: white;
-      font-size: 24px;
+      font-size: 28px;
       font-weight: 700;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+
+      text-shadow:
+        0 4px 20px rgba(0,0,0,0.45);
     }
   </style>
 </head>
 
 <body>
 
-  <div id="wallpaper"></div>
+  <!-- Wallpaper -->
+  <div id="app"></div>
 
+  <!-- Dark overlay -->
+  <div class="overlay"></div>
+
+  <!-- Demo content -->
   <div class="content">
-    Telegram Mini App
+    Telegram TWallpaper
   </div>
 
-  <!-- TWallpaper -->
+  <!-- TWallpaper CDN -->
   <script src="https://cdn.jsdelivr.net/npm/twallpaper@latest/dist/index.umd.js"></script>
 
   <script>
@@ -75,35 +97,37 @@
     tg.ready();
     tg.expand();
 
-    // Theme colors from Telegram
-    const bg =
-      tg.themeParams.bg_color || "#0f172a";
+    // Container
+    const container =
+      document.getElementById('app');
 
     // Wallpaper
-    const container =
-      document.getElementById("wallpaper");
-
     const wallpaper =
       new window.TWallpaper(container, {
+
         colors: [
-          "#229ED9",
-          "#4C8BF5",
-          "#7B61FF",
-          "#00C2FF"
+          '#4f5bd5',
+          '#962fbf',
+          '#dd6cb9',
+          '#fec496'
         ],
 
         animate: true,
+
+        scrollAnimate: true,
+
         fps: 60,
-        tails: 100,
+
+        tails: 80,
 
         pattern: {
-          image:
-            "https://twallpaper.js.org/patterns/topography.svg",
 
-          opacity: 0.2,
-          background: bg,
-          blur: 2,
-          size: "cover"
+          image:
+            'https://twallpaper.js.org/patterns/games.svg',
+
+          mask: true,
+
+          size: '500px'
         }
       });
 
