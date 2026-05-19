@@ -53,7 +53,6 @@
         }
         .btn {
             background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.3);
             padding: 16px 32px;
@@ -69,7 +68,6 @@
         }
         .card {
             background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
             padding: 24px;
@@ -104,7 +102,6 @@
             font-weight: 600;
         }
     </style>
-<base target="_blank">
 </head>
 <body>
     <div id="wallpaper-container"></div>
@@ -113,7 +110,7 @@
         <h1>Telegram Mini App</h1>
         <p>Beautiful animated gradient background</p>
         <button class="btn" onclick="showInfo()">Show My Info</button>
-
+        
         <div class="card" id="infoCard">
             <div class="card-item">
                 <span class="label">Name</span>
@@ -141,7 +138,7 @@
         tg.ready();
         tg.expand();
 
-        // Initialize TWallpaper
+        // Initialize TWallpaper with patterns
         const wallpaper = new window.TWallpaper.default(
             document.getElementById('wallpaper-container'),
             {
@@ -168,7 +165,7 @@
         function showInfo() {
             const user = tg.initDataUnsafe?.user;
             const card = document.getElementById('infoCard');
-
+            
             if (user) {
                 document.getElementById('userName').textContent = 
                     (user.first_name || '') + ' ' + (user.last_name || '');
@@ -183,7 +180,7 @@
                 document.getElementById('userId').textContent = '0';
                 document.getElementById('userLang').textContent = 'en';
             }
-
+            
             card.classList.toggle('show');
             tg.HapticFeedback?.impactOccurred('light');
         }
