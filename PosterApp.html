@@ -1,274 +1,133 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>ReqLab</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-<style>
-:root {
-  --bg: var(--tg-theme-bg-color, #0f172a);
-  --text: var(--tg-theme-text-color, #e5e7eb);
-  --hint: var(--tg-theme-hint-color, #94a3b8);
-  --button: var(--tg-theme-button-color, #3390ec);
-  --button-text: var(--tg-theme-button-text-color, #fff);
-  --secondary: #020617;
-  --border: #334155;
-}
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: monospace;
-}
-
-.container {
-  padding: 12px;
-}
-
-.row {
-  display: flex;
-  gap: 8px;
-}
-
-select, input, textarea {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--secondary);
-  color: var(--text);
-  font-family: monospace;
-}
-
-textarea {
-  height: 120px;
-}
-
-.tabs {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.tab {
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: var(--secondary);
-  cursor: pointer;
-}
-
-.tab.active {
-  background: var(--button);
-  color: var(--button-text);
-}
-
-.box {
-  margin-top: 10px;
-}
-
-.response {
-  margin-top: 12px;
-  padding: 10px;
-  background: var(--secondary);
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  max-height: 300px;
-  overflow: auto;
-  white-space: pre-wrap;
-}
-
-.topbar {
-  display: flex;
-  gap: 8px;
-}
-
-.method {
-  width: 90px;
-}
-
-.status {
-  margin-top: 8px;
-  font-size: 12px;
-  color: var(--hint);
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Telegram Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--tg-theme-text-color, #000000);
+            background: var(--tg-theme-bg-color, #ffffff);
+            overflow: hidden;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            z-index: 1;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        p {
+            font-size: 16px;
+            opacity: 0.8;
+            margin-bottom: 24px;
+        }
+        .btn {
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+        }
+        .btn:active {
+            transform: scale(0.96);
+            opacity: 0.9;
+        }
+        .user-info {
+            margin-top: 20px;
+            padding: 16px;
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            border-radius: 12px;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+<base target="_blank">
 </head>
-
 <body>
+    <div class="container">
+        <h1>Hello, Telegram!</h1>
+        <p>This is a simple Mini App with TWallpaper background.</p>
+        <button class="btn" onclick="showUser()">Show My Info</button>
+        <div class="user-info" id="userInfo"></div>
+    </div>
 
-<div class="container">
+    <!-- TWallpaper Background -->
+    <script type="module">
+        import { TWallpaper } from "https://cdn.jsdelivr.net/npm/twallpaper@latest/dist/twallpaper.js";
 
-<h3>🧪 ReqLab</h3>
+        const wallpaper = new TWallpaper(document.body, {
+            fps: 60,
+            tails: 80,
+            tailsSwing: 2,
+            trails: 30,
+            color: [
+                "#0088cc",
+                "#0088cc",
+                "#179cde",
+                "#179cde",
+                "#2ca5e0",
+                "#2ca5e0",
+                "#33a4dd",
+                "#33a4dd",
+                "#0088cc",
+                "#0088cc",
+                "#0088cc",
+                "#0088cc",
+            ],
+        });
 
-<div class="topbar">
-  <select id="method" class="method">
-    <option>GET</option>
-    <option>POST</option>
-  </select>
+        wallpaper.init();
+    </script>
 
-  <input id="url" placeholder="Enter request URL">
-</div>
+    <script>
+        // Initialize Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
 
-<div class="tabs">
-  <div class="tab active" onclick="setTab('body')">Body</div>
-  <div class="tab" onclick="setTab('headers')">Headers</div>
-</div>
+        // Apply Telegram theme
+        document.body.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
+        document.body.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
+        document.body.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3390ec');
+        document.body.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
+        document.body.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#f5f5f5');
 
-<div id="bodyTab" class="box">
-  <textarea id="body">{}</textarea>
-</div>
+        function showUser() {
+            const user = tg.initDataUnsafe?.user;
+            const infoDiv = document.getElementById('userInfo');
 
-<div id="headersTab" class="box" style="display:none;">
-  <textarea id="headers">{}</textarea>
-</div>
-
-<h4>⚡ Telegram</h4>
-
-<div class="row">
-  <button onclick="tplGetMe()">getMe</button>
-  <button onclick="tplSendMsg()">sendMessage</button>
-</div>
-
-<div class="status" id="status">Idle</div>
-
-<div class="response" id="response">
-Response will appear here...
-</div>
-
-</div>
-
-<script>
-
-const tg = window.Telegram.WebApp;
-tg.ready();
-tg.expand();
-
-// ===== MAIN BUTTON =====
-tg.MainButton.setText("🚀 Send Request");
-tg.MainButton.show();
-tg.MainButton.onClick(sendRequest);
-
-// ===== STATE =====
-let activeTab = "body";
-
-// ===== TAB SWITCH =====
-function setTab(tab) {
-  activeTab = tab;
-
-  document.getElementById("bodyTab").style.display =
-    tab === "body" ? "block" : "none";
-
-  document.getElementById("headersTab").style.display =
-    tab === "headers" ? "block" : "none";
-
-  let tabs = document.querySelectorAll(".tab");
-  tabs.forEach(t => t.classList.remove("active"));
-  event.target.classList.add("active");
-}
-
-// ===== REQUEST =====
-function sendRequest() {
-
-  tg.HapticFeedback.impactOccurred("medium");
-
-  let method = document.getElementById("method").value;
-  let url = document.getElementById("url").value;
-
-  let bodyText = document.getElementById("body").value;
-  let headersText = document.getElementById("headers").value;
-
-  let resBox = document.getElementById("response");
-  let status = document.getElementById("status");
-
-  status.innerText = "⏳ Sending...";
-  resBox.innerText = "";
-
-  let start = Date.now();
-
-  let options = {
-    method: method,
-    headers: {}
-  };
-
-  // HEADERS
-  try {
-    options.headers = JSON.parse(headersText || "{}");
-  } catch {
-    resBox.innerText = "❌ Invalid Headers JSON";
-    return;
-  }
-
-  // BODY
-  if (method === "POST") {
-    try {
-      JSON.parse(bodyText);
-      options.body = bodyText;
-      options.headers["Content-Type"] = "application/json";
-    } catch {
-      resBox.innerText = "❌ Invalid Body JSON";
-      return;
-    }
-  }
-
-  fetch(url, options)
-    .then(async res => {
-      let time = Date.now() - start;
-
-      let text = await res.text();
-
-      try {
-        text = JSON.stringify(JSON.parse(text), null, 2);
-      } catch {}
-
-      resBox.innerText = text;
-
-      status.innerText =
-        "✅ " + res.status + " | " + time + "ms";
-
-      tg.HapticFeedback.notificationOccurred("success");
-    })
-    .catch(err => {
-      resBox.innerText = err.toString();
-      status.innerText = "❌ Error";
-      tg.HapticFeedback.notificationOccurred("error");
-    });
-}
-
-// ===== TELEGRAM TEMPLATES =====
-
-// getMe
-function tplGetMe() {
-  let token = prompt("Bot Token:");
-  if (!token) return;
-
-  document.getElementById("method").value = "GET";
-  document.getElementById("url").value =
-    "https://api.telegram.org/bot" + token + "/getMe";
-}
-
-// sendMessage
-function tplSendMsg() {
-  let token = prompt("Bot Token:");
-  if (!token) return;
-
-  let chatId = tg.initDataUnsafe?.user?.id || "";
-
-  document.getElementById("method").value = "POST";
-  document.getElementById("url").value =
-    "https://api.telegram.org/bot" + token + "/sendMessage";
-
-  document.getElementById("body").value =
-`{
-  "chat_id": "${chatId}",
-  "text": "Hello from ReqLab 🚀"
-}`;
-}
-
-</script>
-
+            if (user) {
+                infoDiv.innerHTML = `
+                    <strong>User:</strong> ${user.first_name} ${user.last_name || ''}<br>
+                    <strong>Username:</strong> @${user.username || 'N/A'}<br>
+                    <strong>ID:</strong> ${user.id}
+                `;
+            } else {
+                infoDiv.innerHTML = 'No user data available. Open this in Telegram.';
+            }
+            infoDiv.style.display = 'block';
+            tg.HapticFeedback.impactOccurred('light');
+        }
+    </script>
 </body>
 </html>
