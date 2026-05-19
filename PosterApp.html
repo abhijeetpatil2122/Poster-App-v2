@@ -5,128 +5,187 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Telegram Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/twallpaper@latest/dist/twallpaper.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            min-height: 100vh;
+            color: var(--tg-theme-text-color, #000000);
+        }
+        #wallpaper-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        .content {
+            position: relative;
+            z-index: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: var(--tg-theme-text-color, #000000);
-            background: var(--tg-theme-bg-color, #ffffff);
-            overflow: hidden;
-        }
-        .container {
-            text-align: center;
+            min-height: 100vh;
             padding: 20px;
-            z-index: 1;
+            text-align: center;
         }
         h1 {
-            font-size: 28px;
-            margin-bottom: 12px;
-            font-weight: 600;
+            font-size: 32px;
+            margin-bottom: 16px;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
         p {
-            font-size: 16px;
-            opacity: 0.8;
-            margin-bottom: 24px;
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.2);
         }
         .btn {
-            background: var(--tg-theme-button-color, #3390ec);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            border: none;
-            padding: 14px 28px;
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 16px 32px;
+            border-radius: 16px;
             font-size: 16px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.15s ease, opacity 0.15s ease;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         .btn:active {
-            transform: scale(0.96);
-            opacity: 0.9;
+            transform: scale(0.95);
         }
-        .user-info {
-            margin-top: 20px;
-            padding: 16px;
-            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-            border-radius: 12px;
-            font-size: 14px;
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 24px;
+            margin-top: 24px;
+            max-width: 320px;
+            width: 100%;
             display: none;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        .card.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 14px;
+        }
+        .card-item:last-child {
+            border-bottom: none;
+        }
+        .label {
+            opacity: 0.7;
+        }
+        .value {
+            font-weight: 600;
         }
     </style>
 <base target="_blank">
 </head>
 <body>
-    <div class="container">
-        <h1>Hello, Telegram!</h1>
-        <p>This is a simple Mini App with TWallpaper background.</p>
-        <button class="btn" onclick="showUser()">Show My Info</button>
-        <div class="user-info" id="userInfo"></div>
+    <div id="wallpaper-container"></div>
+
+    <div class="content">
+        <h1>Telegram Mini App</h1>
+        <p>Beautiful animated gradient background</p>
+        <button class="btn" onclick="showInfo()">Show My Info</button>
+
+        <div class="card" id="infoCard">
+            <div class="card-item">
+                <span class="label">Name</span>
+                <span class="value" id="userName">-</span>
+            </div>
+            <div class="card-item">
+                <span class="label">Username</span>
+                <span class="value" id="userUsername">-</span>
+            </div>
+            <div class="card-item">
+                <span class="label">ID</span>
+                <span class="value" id="userId">-</span>
+            </div>
+            <div class="card-item">
+                <span class="label">Language</span>
+                <span class="value" id="userLang">-</span>
+            </div>
+        </div>
     </div>
 
-    <!-- TWallpaper Background -->
-    <script type="module">
-        import { TWallpaper } from "https://cdn.jsdelivr.net/npm/twallpaper@latest/dist/twallpaper.js";
-
-        const wallpaper = new TWallpaper(document.body, {
-            fps: 60,
-            tails: 80,
-            tailsSwing: 2,
-            trails: 30,
-            color: [
-                "#0088cc",
-                "#0088cc",
-                "#179cde",
-                "#179cde",
-                "#2ca5e0",
-                "#2ca5e0",
-                "#33a4dd",
-                "#33a4dd",
-                "#0088cc",
-                "#0088cc",
-                "#0088cc",
-                "#0088cc",
-            ],
-        });
-
-        wallpaper.init();
-    </script>
-
+    <script src="https://cdn.jsdelivr.net/npm/twallpaper@latest/dist/index.umd.js"></script>
     <script>
         // Initialize Telegram Web App
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        // Apply Telegram theme
-        document.body.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
-        document.body.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
-        document.body.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3390ec');
-        document.body.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
-        document.body.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#f5f5f5');
+        // Initialize TWallpaper
+        const wallpaper = new window.TWallpaper.default(
+            document.getElementById('wallpaper-container'),
+            {
+                colors: [
+                    '#1a73e8',
+                    '#4285f4',
+                    '#34a853',
+                    '#fbbc04',
+                    '#ea4335',
+                    '#ff6d01',
+                    '#1a73e8'
+                ],
+                pattern: {
+                    mask: true,
+                    blur: 0,
+                    size: 400,
+                    opacity: 0.5
+                }
+            }
+        );
+        wallpaper.init();
 
-        function showUser() {
+        // Show user info
+        function showInfo() {
             const user = tg.initDataUnsafe?.user;
-            const infoDiv = document.getElementById('userInfo');
+            const card = document.getElementById('infoCard');
 
             if (user) {
-                infoDiv.innerHTML = `
-                    <strong>User:</strong> ${user.first_name} ${user.last_name || ''}<br>
-                    <strong>Username:</strong> @${user.username || 'N/A'}<br>
-                    <strong>ID:</strong> ${user.id}
-                `;
+                document.getElementById('userName').textContent = 
+                    (user.first_name || '') + ' ' + (user.last_name || '');
+                document.getElementById('userUsername').textContent = 
+                    '@' + (user.username || 'N/A');
+                document.getElementById('userId').textContent = user.id;
+                document.getElementById('userLang').textContent = 
+                    user.language_code || 'N/A';
             } else {
-                infoDiv.innerHTML = 'No user data available. Open this in Telegram.';
+                document.getElementById('userName').textContent = 'Guest';
+                document.getElementById('userUsername').textContent = '@guest';
+                document.getElementById('userId').textContent = '0';
+                document.getElementById('userLang').textContent = 'en';
             }
-            infoDiv.style.display = 'block';
-            tg.HapticFeedback.impactOccurred('light');
+
+            card.classList.toggle('show');
+            tg.HapticFeedback?.impactOccurred('light');
         }
     </script>
 </body>
