@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+* { -webkit-tap-highlight-color: transparent; }
+body { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; background: var(--tg-theme-bg-color,#020617); color: var(--tg-theme-text-color,#f1f5f9); }
+.no-scrollbar::-webkit-scrollbar { display:none; }
